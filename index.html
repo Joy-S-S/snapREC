@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
+  <script src="coi-serviceworker.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>snapREC – Screen Recorder</title>
   <meta name="description"
@@ -12,7 +13,6 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
     rel="stylesheet" />
-  <script src="coi-serviceworker.js"></script>
   <style>
     *,
     *::before,
@@ -1118,10 +1118,10 @@
     $('btnConvertToMp4').addEventListener('click', async () => {
       if (!state.recordingBlob) return;
 
-      // CRITICAL CHECK FOR GITHUB PAGES / HEADERS
+      // Check if browser has enabled higher security headers (COOP/COEP)
       if (!window.crossOriginIsolated) {
-        showToast('Browser not isolated yet. Please REFRESH the page to enable MP4.');
-        alert('Browser security requires one refresh to enable the conversion engine. Please refresh and try again!');
+        showToast('Activating Engine... Please refresh the page manually once more.');
+        console.log("Context not isolated. The service worker is setting up the secure environment.");
         return;
       }
 
