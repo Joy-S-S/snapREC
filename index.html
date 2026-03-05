@@ -1117,6 +1117,14 @@
     // MP4 CONVERSION (DYNAMICALY LOADED PYTHON)
     $('btnConvertToMp4').addEventListener('click', async () => {
       if (!state.recordingBlob) return;
+
+      // CRITICAL CHECK FOR GITHUB PAGES / HEADERS
+      if (!window.crossOriginIsolated) {
+        showToast('Browser not isolated yet. Please REFRESH the page to enable MP4.');
+        alert('Browser security requires one refresh to enable the conversion engine. Please refresh and try again!');
+        return;
+      }
+
       const btn = $('btnConvertToMp4');
       const originalText = btn.textContent;
 
