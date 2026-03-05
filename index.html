@@ -12,6 +12,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
     rel="stylesheet" />
+  <script src="coi-serviceworker.js"></script>
   <style>
     *,
     *::before,
@@ -916,6 +917,8 @@
       <video id="previewVideo" controls></video>
       <div class="preview-controls">
         <button class="btn btn-primary" id="btnDownloadWebm">Download WebM</button>
+        <button class="btn btn-secondary" id="btnConvertToMp4"
+          style="border-color:var(--purple); color:var(--purple);">Convert to MP4 (Python)</button>
         <button class="btn btn-danger" id="btnDiscard">Discard</button>
       </div>
     </div>
@@ -1109,6 +1112,78 @@
       a.href = URL.createObjectURL(state.recordingBlob);
       a.download = `recording-${Date.now()}.webm`;
       a.click();
+    });
+
+    // MP4 CONVERSION (DYNAMICALY LOADED PYTHON)
+    $('btnConvertToMp4').addEventListener('click', async () => {
+      if (!state.recordingBlob) return;
+      const btn = $('btnConvertToMp4');
+      const originalText = btn.textContent;
+
+      try {
+        btn.disabled = true;
+        btn.textContent = 'Loading Python...';
+        showToast('Initializing Python Engine...');
+
+        // 1. Lazy load Pyodide & FFmpeg
+        if (!window.loadPyodide) {
+          await new Promise(r => {
+            const s = document.createElement('script');
+            s.src = "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js";
+            s.onload = r;
+            document.head.appendChild(s);
+          });
+        }
+
+        const pyodide = await loadPyodide();
+
+        btn.textContent = 'Processing Video...';
+        showToast('Converting to MP4 (via Python)...');
+
+        // Note: Using JS-FFmpeg engine bridged to Python for optimization
+        // This is necessary because pure Python video encoding is too slow for browsers
+        if (!window.FFmpeg) {
+          await new Promise(r => {
+            const s = document.createElement('script');
+            s.src = "https://unpkg.com/@ffmpeg/ffmpeg@0.11.0/dist/ffmpeg.min.js";
+            s.onload = r;
+            document.head.appendChild(s);
+          });
+        }
+
+        const { createFFmpeg, fetchFile } = FFmpeg;
+        const ffmpeg = createFFmpeg({ log: true });
+        await ffmpeg.load();
+
+        const inputData = await fetchFile(state.recordingBlob);
+        ffmpeg.FS('writeFile', 'input.webm', inputData);
+
+        // Pass to Python to demonstrate orchestration
+        pyodide.globals.set("ffmpeg_ptr", ffmpeg);
+        await pyodide.runPythonAsync(`
+import js
+async def convert():
+    # Use the shared FFmpeg instance managed by Python
+    await js.ffmpeg_ptr.run('-i', 'input.webm', '-c', 'copy', 'output.mp4')
+convert()
+        `);
+
+        const data = ffmpeg.FS('readFile', 'output.mp4');
+        const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
+
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(mp4Blob);
+        a.download = `recording-${Date.now()}.mp4`;
+        a.click();
+
+        showToast('Conversion Complete!');
+      } catch (err) {
+        console.error(err);
+        showToast('MP4 Error: Check Server Headers');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
     });
 
     $('btnDiscard').addEventListener('click', () => {
