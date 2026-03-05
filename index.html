@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>snapREC – Screen Recorder</title>
+  <meta name="description"
+    content="Free, ad-free, minimal web screen recorder. No installs. No sign-ups. Just record." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #070711;
+      --surface: rgba(255, 255, 255, 0.04);
+      --surface2: rgba(255, 255, 255, 0.07);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f0f0ff;
+      --muted: rgba(240, 240, 255, 0.45);
+      --purple: #a855f7;
+      --pink: #ec4899;
+      --cyan: #22d3ee;
+      --green: #4ade80;
+      --red: #f87171;
+      --yellow: #fbbf24;
+      --grad1: linear-gradient(135deg, #a855f7, #ec4899);
+      --grad2: linear-gradient(135deg, #22d3ee, #a855f7);
+      --grad3: linear-gradient(135deg, #4ade80, #22d3ee);
+      --glow-purple: 0 0 40px rgba(168, 85, 247, 0.35);
+      --glow-pink: 0 0 40px rgba(236, 72, 153, 0.35);
+      --glow-cyan: 0 0 40px rgba(34, 211, 238, 0.35);
+      --radius: 20px;
+      --radius-sm: 12px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* BACKGROUND ORBS */
+    .bg-orbs {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.18;
+      animation: drift 20s ease-in-out infinite alternate;
+    }
+
+    .orb-1 {
+      width: 600px;
+      height: 600px;
+      background: #a855f7;
+      top: -200px;
+      left: -150px;
+      animation-duration: 25s;
+    }
+
+    .orb-2 {
+      width: 500px;
+      height: 500px;
+      background: #22d3ee;
+      bottom: -200px;
+      right: -100px;
+      animation-duration: 30s;
+      animation-delay: -10s;
+    }
+
+    .orb-3 {
+      width: 350px;
+      height: 350px;
+      background: #ec4899;
+      top: 40%;
+      left: 40%;
+      animation-duration: 20s;
+      animation-delay: -5s;
+    }
+
+    @keyframes drift {
+      from {
+        transform: translate(0, 0) scale(1);
+      }
+
+      to {
+        transform: translate(60px, 40px) scale(1.08);
+      }
+    }
+
+    /* NOISE OVERLAY */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+
+    /* LAYOUT */
+    .app {
+      position: relative;
+      z-index: 2;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* NAVBAR */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 28px 0 20px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.2rem;
+      letter-spacing: -0.02em;
+    }
+
+    .logo-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--grad1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--glow-purple);
+      animation: pulse-logo 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse-logo {
+
+      0%,
+      100% {
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+      }
+
+      50% {
+        box-shadow: 0 0 40px rgba(236, 72, 153, 0.6);
+      }
+    }
+
+    .badge {
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: rgba(74, 222, 128, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      padding: 60px 0 48px;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 6px 166px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 28px;
+      backdrop-filter: blur(10px);
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .hero-tag span {
+      color: var(--purple);
+    }
+
+    .hero h1 {
+      font-size: clamp(2.8rem, 7vw, 5rem);
+      font-weight: 700;
+      line-height: 1.08;
+      letter-spacing: -0.04em;
+      margin-bottom: 20px;
+      animation: fadeUp 0.6s ease 0.1s both;
+    }
+
+    .grad-text {
+      background: var(--grad1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 480px;
+      margin: 0 auto 40px;
+      line-height: 1.65;
+      animation: fadeUp 0.6s ease 0.2s both;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* FEATURE PILLS */
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 40px;
+      animation: fadeUp 0.6s ease 0.3s both;
+    }
+
+    .pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 6px 14px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      backdrop-filter: blur(10px);
+      transition: all 0.2s;
+    }
+
+    .pill:hover {
+      border-color: rgba(168, 85, 247, 0.4);
+      color: var(--text);
+    }
+
+    .pill .dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    /* START BUTTON */
+    .start-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 40px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      background: var(--grad1);
+      color: #fff;
+      letter-spacing: -0.01em;
+      box-shadow: 0 0 50px rgba(168, 85, 247, 0.4), 0 4px 30px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+      animation: fadeUp 0.6s ease 0.35s both;
+      overflow: hidden;
+    }
+
+    .start-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), transparent);
+    }
+
+    .start-btn:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 70px rgba(168, 85, 247, 0.6), 0 6px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .start-btn:active {
+      transform: scale(0.98);
+    }
+
+    .start-btn .rec-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #fff;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.3;
+      }
+    }
+
+    /* GLASS CARD */
+    .glass-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 28px;
+    }
+
+    /* MAIN RECORDER PANEL */
+    #recorderPanel {
+      display: none;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    #recorderPanel.visible {
+      display: block;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .panel-title {
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.75rem;
+    }
+
+    /* OPTIONS GRID */
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .opt-card {
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 18px 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .opt-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .opt-card.purple::before {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(236, 72, 153, 0.08));
+    }
+
+    .opt-card.cyan::before {
+      background: linear-gradient(135deg, rgba(34, 211, 238, 0.12), rgba(168, 85, 247, 0.08));
+    }
+
+    .opt-card.green::before {
+      background: linear-gradient(135deg, rgba(74, 222, 128, 0.12), rgba(34, 211, 238, 0.08));
+    }
+
+    .opt-card:hover::before,
+    .opt-card.active::before {
+      opacity: 1;
+    }
+
+    .opt-card.purple:hover,
+    .opt-card.purple.active {
+      border-color: rgba(168, 85, 247, 0.5);
+    }
+
+    .opt-card.cyan:hover,
+    .opt-card.cyan.active {
+      border-color: rgba(34, 211, 238, 0.5);
+    }
+
+    .opt-card.green:hover,
+    .opt-card.green.active {
+      border-color: rgba(74, 222, 128, 0.5);
+    }
+
+    .opt-card.active {
+      transform: scale(1.02);
+    }
+
+    .opt-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .opt-sub {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    /* TOGGLE SWITCHES */
+    .toggles-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .toggle-item {
+      flex: 1;
+      min-width: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+    }
+
+    .toggle-label {
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      cursor: pointer;
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.1);
+      transition: all 0.3s;
+    }
+
+    .slider::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      top: 3px;
+      left: 3px;
+      transition: all 0.3s;
+    }
+
+    .toggle input:checked+.slider {
+      background: var(--grad1);
+    }
+
+    .toggle input:checked+.slider::after {
+      transform: translateX(18px);
+    }
+
+    /* RECORD BUTTON */
+    .record-btn-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin: 8px 0;
+    }
+
+    .record-btn {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: transform 0.2s;
+    }
+
+    .record-btn:hover {
+      transform: scale(1.08);
+    }
+
+    .record-btn:active {
+      transform: scale(0.95);
+    }
+
+    .record-btn#btnStart {
+      background: var(--grad1);
+      box-shadow: 0 0 40px rgba(168, 85, 247, 0.5);
+    }
+
+    .record-btn#btnStart::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 2px solid rgba(168, 85, 247, 0.3);
+      animation: ring-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes ring-pulse {
+      0% {
+        transform: scale(1);
+        opacity: 0.8;
+      }
+
+      100% {
+        transform: scale(1.35);
+        opacity: 0;
+      }
+    }
+
+    .record-btn#btnPause {
+      background: rgba(251, 191, 36, 0.15);
+      border: 1.5px solid rgba(251, 191, 36, 0.35);
+      color: var(--yellow);
+    }
+
+    .record-btn#btnStop {
+      background: rgba(248, 113, 113, 0.15);
+      border: 1.5px solid rgba(248, 113, 113, 0.35);
+      color: var(--red);
+    }
+
+    /* TIMER */
+    .timer-display {
+      font-family: 'Space Mono', monospace;
+      font-size: 2.8rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-align: center;
+      margin-bottom: 24px;
+      background: var(--grad1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .timer-display.paused {
+      background: var(--yellow);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    /* STATUS ROW */
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 28px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+
+    .status-dot.recording {
+      background: var(--red);
+      animation: blink 1s ease-in-out infinite;
+    }
+
+    .status-dot.paused {
+      background: var(--yellow);
+    }
+
+    .status-dot.idle {
+      background: var(--green);
+    }
+
+    /* CAMERA PIP */
+    #camPip {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 999;
+      width: 220px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 2px solid rgba(168, 85, 247, 0.4);
+      box-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
+      display: none;
+      cursor: grab;
+    }
+
+    #camPip.active {
+      display: block;
+    }
+
+    #camPip video {
+      width: 100%;
+      display: block;
+      transform: scaleX(-1);
+      border-radius: inherit;
+    }
+
+    .pip-label {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(8px);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.8);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* PREVIEW SECTION */
+    #previewSection {
+      display: none;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    #previewSection.visible {
+      display: block;
+    }
+
+    #previewVideo {
+      width: 100%;
+      border-radius: var(--radius-sm);
+      background: #000;
+      display: block;
+      max-height: 440px;
+      object-fit: contain;
+    }
+
+    .preview-controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 24px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--grad1);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      transform: scale(1.03);
+    }
+
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      transform: scale(1.03);
+    }
+
+    .btn-danger {
+      background: rgba(248, 113, 113, 0.12);
+      color: var(--red);
+      border: 1px solid rgba(248, 113, 113, 0.25);
+    }
+
+    .btn-danger:hover {
+      transform: scale(1.03);
+    }
+
+    /* TOAST */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(30px);
+      background: rgba(15, 15, 25, 0.9);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      border-radius: 50px;
+      padding: 12px 24px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      opacity: 0;
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.78rem;
+      padding: 20px 0 0;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+
+    footer a {
+      color: var(--purple);
+      text-decoration: none;
+    }
+
+    @media (max-width: 600px) {
+      .options-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div id="camPip">
+    <div class="pip-label">Camera</div>
+    <video id="camVideo" autoplay muted playsinline></video>
+  </div>
+
+  <div id="toast">Done</div>
+
+  <div class="app">
+    <nav>
+      <div class="logo">
+        <span>snap<span class="grad-text">REC</span></span>
+      </div>
+      <div class="badge">Static</div>
+    </nav>
+
+    <section class="hero" id="heroSection">
+      <div class="hero-tag"><span>Fully Client-side</span> — no server required</div>
+      <h1>Record your<br /><span class="grad-text">screen.</span></h1>
+      <p>Minimal and private. Everything happens in your browser.</p>
+
+      <div class="pills">
+        <div class="pill"><span class="dot" style="background:#a855f7"></span>Screen</div>
+        <div class="pill"><span class="dot" style="background:#22d3ee"></span>Camera Overlay</div>
+        <div class="pill"><span class="dot" style="background:#ec4899"></span>Audio</div>
+        <div class="pill"><span class="dot" style="background:#4ade80"></span>WebM Export</div>
+        <div class="pill"><span class="dot" style="background:#f87171"></span>Privacy</div>
+      </div>
+
+      <button class="start-btn" id="btnGetStarted">
+        <div class="rec-dot"></div>
+        Open Recorder
+      </button>
+    </section>
+
+    <div id="recorderPanel" class="glass-card">
+      <div id="idleState">
+        <div class="panel-header">
+          <span class="panel-title">Configuration</span>
+          <button class="btn btn-secondary" id="btnBack" style="padding:8px 16px;font-size:0.8rem;">Back</button>
+        </div>
+
+        <div class="options-grid">
+          <div class="opt-card purple active" data-mode="screen" id="optScreen">
+            <div class="opt-label">Screen</div>
+            <div class="opt-sub">Entire display</div>
+          </div>
+          <div class="opt-card cyan" data-mode="window" id="optWindow">
+            <div class="opt-label">Window</div>
+            <div class="opt-sub">Specific app</div>
+          </div>
+          <div class="opt-card green" data-mode="tab" id="optTab">
+            <div class="opt-label">Tab</div>
+            <div class="opt-sub">Current tab</div>
+          </div>
+        </div>
+
+        <div class="toggles-row">
+          <div class="toggle-item" id="toggleCamWrap">
+            <label class="toggle-label" for="toggleCam">Camera</label>
+            <label class="toggle" for="toggleCam">
+              <input type="checkbox" id="toggleCam" />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="toggle-item" id="toggleMicWrap">
+            <label class="toggle-label" for="toggleMic">Microphone</label>
+            <label class="toggle" for="toggleMic">
+              <input type="checkbox" id="toggleMic" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="toggle-item" id="toggleSysAudioWrap">
+            <label class="toggle-label" for="toggleSysAudio">System Audio</label>
+            <label class="toggle" for="toggleSysAudio">
+              <input type="checkbox" id="toggleSysAudio" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="record-btn-wrap">
+          <button class="record-btn" id="btnStart" title="Start"></button>
+        </div>
+        <p style="text-align:center; color:var(--muted); font-size:0.8rem; margin-top:12px;">Click to record</p>
+      </div>
+
+      <div id="recordingState" style="display:none;">
+        <div class="status-row">
+          <div class="status-dot recording" id="statusDot"></div>
+          <span id="statusText">Recording</span>
+        </div>
+        <div class="timer-display" id="timerDisplay">00:00:00</div>
+        <div class="record-btn-wrap">
+          <button class="record-btn" id="btnPause" title="Pause">P</button>
+          <button class="record-btn" id="btnStop" title="Stop">S</button>
+        </div>
+        <p style="text-align:center; color:var(--muted); font-size:0.78rem; margin-top:16px;">
+          Recording in progress
+        </p>
+      </div>
+    </div>
+
+    <div id="previewSection" class="glass-card" style="margin-top:20px;">
+      <div class="panel-header">
+        <span class="panel-title">Recording</span>
+      </div>
+      <video id="previewVideo" controls></video>
+      <div class="preview-controls">
+        <button class="btn btn-primary" id="btnDownloadWebm">Download WebM</button>
+        <button class="btn btn-danger" id="btnDiscard">Discard</button>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;"></div>
+
+    <footer>
+      <p>snapREC Static version · Everything stays local</p>
+    </footer>
+  </div>
+
+  <script>
+    const state = {
+      mode: 'screen',
+      useCam: false,
+      useMic: true,
+      useSysAudio: true,
+      recording: false,
+      paused: false,
+      mediaRecorder: null,
+      chunks: [],
+      screenStream: null,
+      camStream: null,
+      micStream: null,
+      timerInterval: null,
+      seconds: 0,
+      recordingBlob: null,
+    };
+
+    const $ = id => document.getElementById(id);
+    const heroSection = $('heroSection');
+    const recorderPanel = $('recorderPanel');
+    const previewSection = $('previewSection');
+    const idleState = $('idleState');
+    const recordingState = $('recordingState');
+    const timerDisplay = $('timerDisplay');
+    const statusDot = $('statusDot');
+    const statusText = $('statusText');
+    const camPip = $('camPip');
+    const camVideo = $('camVideo');
+    const previewVideo = $('previewVideo');
+    const toast = $('toast');
+
+    $('toggleCam').addEventListener('change', e => { state.useCam = e.target.checked; });
+    $('toggleMic').addEventListener('change', e => { state.useMic = e.target.checked; });
+    $('toggleSysAudio').addEventListener('change', e => { state.useSysAudio = e.target.checked; });
+
+    document.querySelectorAll('.opt-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.opt-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        state.mode = card.dataset.mode;
+      });
+    });
+
+    $('btnGetStarted').addEventListener('click', () => {
+      heroSection.style.display = 'none';
+      recorderPanel.classList.add('visible');
+    });
+    $('btnBack').addEventListener('click', () => {
+      heroSection.style.display = 'block';
+      recorderPanel.classList.remove('visible');
+      previewSection.classList.remove('visible');
+    });
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    function updateTimer() {
+      const h = String(Math.floor(state.seconds / 3600)).padStart(2, '0');
+      const m = String(Math.floor((state.seconds % 3600) / 60)).padStart(2, '0');
+      const s = String(state.seconds % 60).padStart(2, '0');
+      timerDisplay.textContent = `${h}:${m}:${s}`;
+    }
+
+    $('btnStart').addEventListener('click', startRecording);
+
+    async function startRecording() {
+      try {
+        const displayConstraints = { video: { cursor: 'always' }, audio: state.useSysAudio };
+        state.screenStream = await navigator.mediaDevices.getDisplayMedia(displayConstraints);
+        const tracks = [...state.screenStream.getTracks()];
+
+        if (state.useMic) {
+          try {
+            state.micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            state.micStream.getAudioTracks().forEach(t => tracks.push(t));
+          } catch (e) { console.error('Mic error', e); }
+        }
+
+        if (state.useCam) {
+          try {
+            state.camStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            camVideo.srcObject = state.camStream;
+            camPip.classList.add('active');
+
+            // Wait for video to be ready and play
+            await new Promise((resolve) => {
+              camVideo.onloadedmetadata = () => {
+                camVideo.play().then(resolve);
+              };
+            });
+
+            // Trigger native floating window (must be in same gesture flow)
+            if (document.pictureInPictureEnabled && !document.pictureInPictureElement) {
+              await camVideo.requestPictureInPicture();
+            }
+          } catch (e) {
+            console.error('Cam error', e);
+            showToast('Camera failed or PiP blocked');
+          }
+        }
+
+        const combined = new MediaStream(tracks);
+        state.chunks = [];
+        state.mediaRecorder = new MediaRecorder(combined, { mimeType: 'video/webm' });
+        state.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) state.chunks.push(e.data); };
+        state.mediaRecorder.onstop = () => {
+          state.recordingBlob = new Blob(state.chunks, { type: 'video/webm' });
+          previewVideo.src = URL.createObjectURL(state.recordingBlob);
+          previewSection.classList.add('visible');
+        };
+        state.mediaRecorder.start(200);
+
+        state.screenStream.getVideoTracks()[0].onended = stopRecording;
+
+        state.recording = true;
+        idleState.style.display = 'none';
+        recordingState.style.display = 'block';
+        state.seconds = 0;
+        updateTimer();
+        state.timerInterval = setInterval(() => { if (!state.paused) { state.seconds++; updateTimer(); } }, 1000);
+        showToast('Recording started');
+      } catch (err) { console.error(err); }
+    }
+
+    function togglePause() {
+      if (state.paused) {
+        state.mediaRecorder.resume();
+        state.paused = false;
+        statusDot.className = 'status-dot recording';
+        statusText.textContent = 'Recording';
+        $('btnPause').textContent = 'P';
+      } else {
+        state.mediaRecorder.pause();
+        state.paused = true;
+        statusDot.className = 'status-dot paused';
+        statusText.textContent = 'Paused';
+        $('btnPause').textContent = 'R';
+      }
+    }
+
+    function stopRecording() {
+      if (!state.mediaRecorder) return;
+      state.mediaRecorder.stop();
+      clearInterval(state.timerInterval);
+      if (state.screenStream) state.screenStream.getTracks().forEach(t => t.stop());
+      if (state.camStream) state.camStream.getTracks().forEach(t => t.stop());
+      if (state.micStream) state.micStream.getTracks().forEach(t => t.stop());
+      state.recording = false;
+      state.paused = false;
+      recordingState.style.display = 'none';
+      idleState.style.display = 'block';
+      recorderPanel.classList.remove('visible');
+      if (document.pictureInPictureElement) document.exitPictureInPicture();
+      camPip.classList.remove('active');
+    }
+
+    $('btnPause').addEventListener('click', togglePause);
+    $('btnStop').addEventListener('click', stopRecording);
+
+    $('btnDownloadWebm').addEventListener('click', () => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(state.recordingBlob);
+      a.download = `recording-${Date.now()}.webm`;
+      a.click();
+    });
+
+    $('btnDiscard').addEventListener('click', () => {
+      previewSection.classList.remove('visible');
+      heroSection.style.display = 'block';
+    });
+
+
+    (function makeDraggable(el) {
+      let ox = 0, oy = 0;
+      el.addEventListener('mousedown', e => {
+        ox = e.clientX - el.getBoundingClientRect().left;
+        oy = e.clientY - el.getBoundingClientRect().top;
+        const move = ev => {
+          el.style.right = 'auto'; el.style.bottom = 'auto';
+          el.style.left = (ev.clientX - ox) + 'px'; el.style.top = (ev.clientY - oy) + 'px';
+        };
+        const up = () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+        document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
+      });
+    })(camPip);
+  </script>
+</body>
+
+</html>
