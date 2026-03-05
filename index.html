@@ -943,6 +943,7 @@
       timerInterval: null,
       seconds: 0,
       recordingBlob: null,
+      startTime: 0,
     };
 
     const $ = id => document.getElementById(id);
@@ -1040,8 +1041,16 @@
         state.chunks = [];
         state.mediaRecorder = new MediaRecorder(combined, { mimeType: 'video/webm' });
         state.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) state.chunks.push(e.data); };
-        state.mediaRecorder.onstop = () => {
-          state.recordingBlob = new Blob(state.chunks, { type: 'video/webm' });
+        state.mediaRecorder.onstop = async () => {
+          const duration = Date.now() - state.startTime;
+          let blob = new Blob(state.chunks, { type: 'video/webm' });
+
+          // Fix WebM duration/seekability if possible
+          if (typeof ysFixWebmDuration !== 'undefined') {
+            blob = await ysFixWebmDuration(blob, duration);
+          }
+
+          state.recordingBlob = blob;
           previewVideo.src = URL.createObjectURL(state.recordingBlob);
           previewSection.classList.add('visible');
         };
@@ -1052,6 +1061,7 @@
         state.recording = true;
         idleState.style.display = 'none';
         recordingState.style.display = 'block';
+        state.startTime = Date.now();
         state.seconds = 0;
         updateTimer();
         state.timerInterval = setInterval(() => { if (!state.paused) { state.seconds++; updateTimer(); } }, 1000);
@@ -1153,6 +1163,8 @@
       });
     })(camPip);
   </script>
+  <!-- Tiny helper for WebM seekability (fully static) -->
+  <script src="https://unpkg.com/fix-webm-duration@1.0.5/fix-webm-duration.min.js"></script>
 </body>
 
 </html>
