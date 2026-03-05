@@ -577,15 +577,15 @@
     }
 
     .record-btn#btnPause {
-      background: rgba(251, 191, 36, 0.15);
-      border: 1.5px solid rgba(251, 191, 36, 0.35);
-      color: var(--yellow);
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      color: #fff;
+      box-shadow: 0 0 30px rgba(251, 191, 36, 0.4);
     }
 
     .record-btn#btnStop {
-      background: rgba(248, 113, 113, 0.15);
-      border: 1.5px solid rgba(248, 113, 113, 0.35);
-      color: var(--red);
+      background: linear-gradient(135deg, #f87171, #ef4444);
+      color: #fff;
+      box-shadow: 0 0 30px rgba(248, 113, 113, 0.4);
     }
 
     /* TIMER */
@@ -741,9 +741,9 @@
     }
 
     .btn-danger {
-      background: rgba(248, 113, 113, 0.12);
-      color: var(--red);
-      border: 1px solid rgba(248, 113, 113, 0.25);
+      background: linear-gradient(135deg, #f87171, #ef4444);
+      color: #fff;
+      box-shadow: 0 0 20px rgba(248, 113, 113, 0.3);
     }
 
     .btn-danger:hover {
@@ -917,8 +917,7 @@
       <video id="previewVideo" controls></video>
       <div class="preview-controls">
         <button class="btn btn-primary" id="btnDownloadWebm">Download WebM</button>
-        <button class="btn btn-secondary" id="btnConvertToMp4"
-          style="border-color:var(--purple); color:var(--purple);">Convert to MP4 (Python)</button>
+        <button class="btn btn-primary" id="btnConvertToMp4">Convert to MP4 (Python)</button>
         <button class="btn btn-danger" id="btnDiscard">Discard</button>
       </div>
     </div>
@@ -1049,8 +1048,12 @@
           let blob = new Blob(state.chunks, { type: 'video/webm' });
 
           // Fix WebM duration/seekability if possible
-          if (typeof ysFixWebmDuration !== 'undefined') {
-            blob = await ysFixWebmDuration(blob, duration);
+          if (typeof ysFixWebmDuration === 'function' && blob.size > 0) {
+            try {
+              blob = await ysFixWebmDuration(blob, duration);
+            } catch (e) {
+              console.warn('WebM fix failed:', e);
+            }
           }
 
           state.recordingBlob = blob;
@@ -1160,21 +1163,45 @@
         }
 
         const { createFFmpeg, fetchFile } = FFmpeg;
-        const ffmpeg = createFFmpeg({ log: true });
+        const ffmpeg = createFFmpeg({
+          log: false, // Cleaner console
+          mainName: 'main',
+          corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
+        });
+
+        // Show progress percentage in button
+        ffmpeg.setProgress(({ ratio }) => {
+          const pct = Math.floor(ratio * 100);
+          if (pct >= 0 && pct <= 100) btn.textContent = `Converting: ${pct}%`;
+        });
+
         await ffmpeg.load();
 
         const inputData = await fetchFile(state.recordingBlob);
         ffmpeg.FS('writeFile', 'input.webm', inputData);
 
-        // Pass the FFmpeg instance directly to Python globals
+        // Optimization: Use all available CPU cores
+        const threads = navigator.hardwareConcurrency || 4;
+
+        // Pass the FFmpeg instance and thread count to Python
         pyodide.globals.set("ffmpeg_ptr", ffmpeg);
+        pyodide.globals.set("thread_count", threads);
 
         await pyodide.runPythonAsync(`
 import js
 async def convert_video():
-    # Re-encode to H.264 and AAC for MP4 compatibility
-    # Using 'ultrafast' preset to keep the browser responsive
-    await ffmpeg_ptr.run('-i', 'input.webm', '-c:v', 'libx264', '-c:a', 'aac', '-preset', 'ultrafast', 'output.mp4')
+    # Optimization: Use hardware threads and high-speed presets
+    # -threads and -movflags +faststart make the video play/seek instantly
+    await ffmpeg_ptr.run(
+        '-i', 'input.webm', 
+        '-c:v', 'libx264', 
+        '-c:a', 'aac', 
+        '-preset', 'ultrafast', 
+        '-crf', '28', 
+        '-threads', str(thread_count),
+        '-movflags', '+faststart',
+        'output.mp4'
+    )
 
 # Execute the async function
 js.Promise.resolve(convert_video())
@@ -1187,6 +1214,11 @@ js.Promise.resolve(convert_video())
         a.href = URL.createObjectURL(mp4Blob);
         a.download = `recording-${Date.now()}.mp4`;
         a.click();
+
+        // Clean up virtual memory to prevent browser lag
+        ffmpeg.FS('unlink', 'input.webm');
+        ffmpeg.FS('unlink', 'output.mp4');
+        ffmpeg.exit();
 
         showToast('Conversion Complete!');
       } catch (err) {
