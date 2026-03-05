@@ -1013,7 +1013,6 @@
           try {
             state.camStream = await navigator.mediaDevices.getUserMedia({ video: true });
             camVideo.srcObject = state.camStream;
-            camPip.classList.add('active');
 
             // Wait for video to be ready and play
             await new Promise((resolve) => {
@@ -1022,13 +1021,18 @@
               };
             });
 
-            // Trigger native floating window (must be in same gesture flow)
+            // Trigger native floating window
             if (document.pictureInPictureEnabled && !document.pictureInPictureElement) {
               await camVideo.requestPictureInPicture();
+              // When in PiP, hide the in-page box to prevent 'empty box' look
+              camPip.classList.remove('active');
+            } else {
+              // Fallback if PiP fails/disabled
+              camPip.classList.add('active');
             }
           } catch (e) {
             console.error('Cam error', e);
-            showToast('Camera failed or PiP blocked');
+            showToast('Camera failed');
           }
         }
 
@@ -1102,6 +1106,38 @@
       heroSection.style.display = 'block';
     });
 
+
+    // Picture-in-Picture event listeners
+    camVideo.addEventListener('enterpictureinpicture', () => {
+      camPip.classList.remove('active'); // Hide in-page box
+    });
+
+    camVideo.addEventListener('leavepictureinpicture', () => {
+      // Restore to page if still recording
+      if (state.recording && state.useCam) {
+        camPip.classList.add('active');
+      }
+    });
+
+    // Google Meet style: Auto PiP when switching tabs/apps
+    document.addEventListener('visibilitychange', () => {
+      if (!state.recording || !state.useCam) return;
+
+      if (document.visibilityState === 'hidden') {
+        // Switching AWAY from the tab -> Pop out
+        if (document.pictureInPictureEnabled && !document.pictureInPictureElement) {
+          camVideo.requestPictureInPicture().catch(() => {
+            // Some browsers require a gesture for the first transition
+            console.log('Auto-PiP blocked by browser policy');
+          });
+        }
+      } else {
+        // Returning TO the tab -> Bring back inside
+        if (document.pictureInPictureElement) {
+          document.exitPictureInPicture().catch(console.error);
+        }
+      }
+    });
 
     (function makeDraggable(el) {
       let ox = 0, oy = 0;
