@@ -1172,9 +1172,9 @@
         await pyodide.runPythonAsync(`
 import js
 async def convert_video():
-    # ffmpeg_ptr is now in the Python global namespace
-    # We call the run method on the JS object
-    await ffmpeg_ptr.run('-i', 'input.webm', '-c', 'copy', 'output.mp4')
+    # Re-encode to H.264 and AAC for MP4 compatibility
+    # Using 'ultrafast' preset to keep the browser responsive
+    await ffmpeg_ptr.run('-i', 'input.webm', '-c:v', 'libx264', '-c:a', 'aac', '-preset', 'ultrafast', 'output.mp4')
 
 # Execute the async function
 js.Promise.resolve(convert_video())
@@ -1250,8 +1250,8 @@ js.Promise.resolve(convert_video())
       });
     })(camPip);
   </script>
-  <!-- Tiny helper for WebM seekability (fully static) -->
-  <script src="https://unpkg.com/fix-webm-duration@1.0.5/fix-webm-duration.min.js"></script>
+  <!-- Fixed helper for WebM seekability -->
+  <script src="https://cdn.jsdelivr.net/npm/fix-webm-duration@1.0.5/fix-webm-duration.js"></script>
 </body>
 
 </html>
