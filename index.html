@@ -1166,14 +1166,18 @@
         const inputData = await fetchFile(state.recordingBlob);
         ffmpeg.FS('writeFile', 'input.webm', inputData);
 
-        // Pass to Python to demonstrate orchestration
+        // Pass the FFmpeg instance directly to Python globals
         pyodide.globals.set("ffmpeg_ptr", ffmpeg);
+
         await pyodide.runPythonAsync(`
 import js
-async def convert():
-    # Use the shared FFmpeg instance managed by Python
-    await js.ffmpeg_ptr.run('-i', 'input.webm', '-c', 'copy', 'output.mp4')
-convert()
+async def convert_video():
+    # ffmpeg_ptr is now in the Python global namespace
+    # We call the run method on the JS object
+    await ffmpeg_ptr.run('-i', 'input.webm', '-c', 'copy', 'output.mp4')
+
+# Execute the async function
+js.Promise.resolve(convert_video())
         `);
 
         const data = ffmpeg.FS('readFile', 'output.mp4');
