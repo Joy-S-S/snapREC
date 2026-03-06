@@ -1117,10 +1117,18 @@
     });
 
     $('btnDiscard').addEventListener('click', () => {
+      // Memory cleanup: Release the video from RAM
+      if (previewVideo.src) {
+        URL.revokeObjectURL(previewVideo.src);
+        previewVideo.src = '';
+      }
+      state.recordingBlob = null;
+      state.chunks = [];
+
       previewSection.classList.remove('visible');
       recorderPanel.classList.add('visible');
       heroSection.style.display = 'none';
-      showToast('Recording discarded');
+      showToast('Memory cleared');
     });
 
 
