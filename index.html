@@ -161,6 +161,20 @@
       display: none;
     }
 
+    .mirrored {
+      transform: scaleX(-1);
+    }
+
+    /* HIDDEN PIE FOR PIP */
+    #camPip {
+      position: fixed;
+      left: -9999px;
+      bottom: -9999px;
+      opacity: 0;
+      pointer-events: none;
+      z-index: -1;
+    }
+
     /* AUDIO VISUALIZER */
     .mic-viz {
       display: flex;
@@ -1037,6 +1051,13 @@
               <span class="slider"></span>
             </label>
           </div>
+          <div class="toggle-item" id="toggleMirrorWrap">
+            <label class="toggle-label" for="toggleMirror">Mirror Cam</label>
+            <label class="toggle" for="toggleMirror">
+              <input type="checkbox" id="toggleMirror" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
         </div>
 
         <div class="settings-row" style="margin-top:10px;">
@@ -1253,7 +1274,8 @@
             state.micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
             // Audio Gain Logic
-            const audioCtx = new AudioContext();
+            state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const audioCtx = state.audioCtx;
             const source = audioCtx.createMediaStreamSource(state.micStream);
             const gainNode = audioCtx.createGain();
             gainNode.gain.value = parseFloat($('micGain').value);
@@ -1261,6 +1283,8 @@
 
             const destination = audioCtx.createMediaStreamDestination();
             gainNode.connect(destination);
+
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
 
             destination.stream.getAudioTracks().forEach(t => tracks.push(t));
           } catch (e) { console.error('Mic error', e); }
@@ -1271,12 +1295,12 @@
             state.camStream = await navigator.mediaDevices.getUserMedia({ video: true });
             camVideo.srcObject = state.camStream;
 
-            // Apply circular style if enabled
-            if ($('toggleCircleCam').checked) {
-              camPip.classList.add('cam-circle');
-            } else {
-              camPip.classList.remove('cam-circle');
-            }
+            // Apply circular/mirror style if enabled
+            if ($('toggleCircleCam').checked) camPip.classList.add('cam-circle');
+            else camPip.classList.remove('cam-circle');
+
+            if ($('toggleMirror').checked) camVideo.classList.add('mirrored');
+            else camVideo.classList.remove('mirrored');
 
             // Wait for video to be ready and play
             await new Promise((resolve) => {
@@ -1285,14 +1309,11 @@
               };
             });
 
-            // Trigger native floating window
-            if (document.pictureInPictureEnabled && !document.pictureInPictureElement) {
-              await camVideo.requestPictureInPicture();
-              // When in PiP, hide the in-page box to prevent 'empty box' look
-              camPip.classList.remove('active');
-            } else {
-              // Fallback if PiP fails/disabled
-              camPip.classList.add('active');
+            // Trigger native floating window (MANDATORY)
+            if (document.pictureInPictureEnabled) {
+              await camVideo.requestPictureInPicture().catch(() => {
+                showToast('PiP blocked - Camera hidden');
+              });
             }
           } catch (e) {
             console.error('Cam error', e);
@@ -1312,10 +1333,11 @@
         countdownEl.style.display = 'none';
 
         // Setup Mic Visualizer
-        if (state.useMic && state.micStream) {
-          const audioContext = new AudioContext();
+        if (state.useMic && state.micStream && state.audioCtx) {
+          const audioContext = state.audioCtx;
           const source = audioContext.createMediaStreamSource(state.micStream);
           const analyser = audioContext.createAnalyser();
+          if (audioContext.state === 'suspended') await audioContext.resume();
           analyser.fftSize = 32;
           source.connect(analyser);
           const dataArray = new Uint8Array(analyser.frequencyBinCount);
