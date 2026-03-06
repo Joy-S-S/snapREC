@@ -376,81 +376,48 @@
       font-size: 0.75rem;
     }
 
-    /* OPTIONS GRID */
-    .options-grid {
+    /* SETTINGS ROW */
+    .settings-row {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
       margin-bottom: 24px;
     }
 
-    .opt-card {
-      background: var(--surface2);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 18px 14px;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
+    .setting-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
-    .opt-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-
-    .opt-card.purple::before {
-      background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(236, 72, 153, 0.08));
-    }
-
-    .opt-card.cyan::before {
-      background: linear-gradient(135deg, rgba(34, 211, 238, 0.12), rgba(168, 85, 247, 0.08));
-    }
-
-    .opt-card.green::before {
-      background: linear-gradient(135deg, rgba(74, 222, 128, 0.12), rgba(34, 211, 238, 0.08));
-    }
-
-    .opt-card:hover::before,
-    .opt-card.active::before {
-      opacity: 1;
-    }
-
-    .opt-card.purple:hover,
-    .opt-card.purple.active {
-      border-color: rgba(168, 85, 247, 0.5);
-    }
-
-    .opt-card.cyan:hover,
-    .opt-card.cyan.active {
-      border-color: rgba(34, 211, 238, 0.5);
-    }
-
-    .opt-card.green:hover,
-    .opt-card.green.active {
-      border-color: rgba(74, 222, 128, 0.5);
-    }
-
-    .opt-card.active {
-      transform: scale(1.02);
-    }
-
-    .opt-label {
-      font-size: 0.82rem;
+    .setting-label {
+      font-size: 0.75rem;
       font-weight: 600;
-      color: var(--text);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
-    .opt-sub {
-      font-size: 0.7rem;
-      color: var(--muted);
-      margin-top: 3px;
+    .custom-select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      padding: 12px 14px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .custom-select:hover {
+      border-color: var(--purple);
+    }
+
+    .custom-select:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
     }
 
     /* TOGGLE SWITCHES */
@@ -848,18 +815,29 @@
           <button class="btn btn-secondary" id="btnBack" style="padding:8px 16px;font-size:0.8rem;">Back</button>
         </div>
 
-        <div class="options-grid">
-          <div class="opt-card purple active" data-mode="screen" id="optScreen">
-            <div class="opt-label">Screen</div>
-            <div class="opt-sub">Entire display</div>
+        <div class="settings-row">
+          <div class="setting-group">
+            <span class="setting-label">Resolution</span>
+            <select class="custom-select" id="selResolution">
+              <option value="max">Max (Native)</option>
+              <option value="3840x2160">4K (2160p)</option>
+              <option value="2560x1440">2K (1440p)</option>
+              <option value="1920x1080" selected>1080p (Full HD)</option>
+              <option value="1280x720">720p (HD)</option>
+            </select>
           </div>
-          <div class="opt-card cyan" data-mode="window" id="optWindow">
-            <div class="opt-label">Window</div>
-            <div class="opt-sub">Specific app</div>
-          </div>
-          <div class="opt-card green" data-mode="tab" id="optTab">
-            <div class="opt-label">Tab</div>
-            <div class="opt-sub">Current tab</div>
+          <div class="setting-group">
+            <span class="setting-label">Frame Rate</span>
+            <select class="custom-select" id="selFPS">
+              <optgroup label="High Performance">
+                <option value="120">120 FPS</option>
+                <option value="60" selected>60 FPS</option>
+              </optgroup>
+              <optgroup label="Standard">
+                <option value="30">30 FPS</option>
+                <option value="24">24 FPS (Cinematic)</option>
+              </optgroup>
+            </select>
           </div>
         </div>
 
@@ -941,9 +919,10 @@
       camStream: null,
       micStream: null,
       timerInterval: null,
-      seconds: 0,
-      recordingBlob: null,
       startTime: 0,
+      width: 1920,
+      height: 1080,
+      frameRate: 60
     };
 
     const $ = id => document.getElementById(id);
@@ -964,12 +943,20 @@
     $('toggleMic').addEventListener('change', e => { state.useMic = e.target.checked; });
     $('toggleSysAudio').addEventListener('change', e => { state.useSysAudio = e.target.checked; });
 
-    document.querySelectorAll('.opt-card').forEach(card => {
-      card.addEventListener('click', () => {
-        document.querySelectorAll('.opt-card').forEach(c => c.classList.remove('active'));
-        card.classList.add('active');
-        state.mode = card.dataset.mode;
-      });
+    $('selResolution').addEventListener('change', e => {
+      const val = e.target.value;
+      if (val === 'max') {
+        state.width = 9999;
+        state.height = 9999;
+      } else {
+        const [w, h] = val.split('x').map(Number);
+        state.width = w;
+        state.height = h;
+      }
+    });
+
+    $('selFPS').addEventListener('change', e => {
+      state.frameRate = Number(e.target.value);
     });
 
     $('btnGetStarted').addEventListener('click', () => {
@@ -999,7 +986,15 @@
 
     async function startRecording() {
       try {
-        const displayConstraints = { video: { cursor: 'always' }, audio: state.useSysAudio };
+        const displayConstraints = {
+          video: {
+            cursor: 'always',
+            width: state.width < 9999 ? { ideal: state.width } : undefined,
+            height: state.height < 9999 ? { ideal: state.height } : undefined,
+            frameRate: { ideal: state.frameRate }
+          },
+          audio: state.useSysAudio
+        };
         state.screenStream = await navigator.mediaDevices.getDisplayMedia(displayConstraints);
         const tracks = [...state.screenStream.getTracks()];
 
