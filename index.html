@@ -1241,25 +1241,28 @@
           audio: state.useSysAudio
         };
         state.screenStream = await navigator.mediaDevices.getDisplayMedia(displayConstraints);
-        const tracks = [...state.screenStream.getTracks()];
+
+        // Split tracks: Keep video and any screen audio
+        const tracks = [];
+        state.screenStream.getTracks().forEach(t => tracks.push(t));
 
         if (state.useMic) {
           try {
             state.micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-            // Audio Gain Logic
+            // Re-use current AudioContext or create new
             state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const audioCtx = state.audioCtx;
-            const source = audioCtx.createMediaStreamSource(state.micStream);
-            const gainNode = audioCtx.createGain();
+            const source = state.audioCtx.createMediaStreamSource(state.micStream);
+            const gainNode = state.audioCtx.createGain();
             gainNode.gain.value = parseFloat($('micGain').value);
             source.connect(gainNode);
 
-            const destination = audioCtx.createMediaStreamDestination();
+            const destination = state.audioCtx.createMediaStreamDestination();
             gainNode.connect(destination);
 
-            if (audioCtx.state === 'suspended') await audioCtx.resume();
+            if (state.audioCtx.state === 'suspended') await state.audioCtx.resume();
 
+            // Add the processed mic tracks to our collection
             destination.stream.getAudioTracks().forEach(t => tracks.push(t));
           } catch (e) { console.error('Mic error', e); }
         }
