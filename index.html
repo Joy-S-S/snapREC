@@ -142,18 +142,6 @@
       padding: 28px 0 20px;
     }
 
-    /* REMOTE CONTROL CANVAS (HIDDEN) */
-    #remoteCanvas {
-      display: none;
-    }
-
-    #remoteVideo {
-      position: fixed;
-      bottom: -100px;
-      opacity: 0;
-      pointer-events: none;
-    }
-
     /* CIRCULAR CAMERA */
     .cam-circle {
       border-radius: 50% !important;
@@ -1119,9 +1107,6 @@
     </footer>
   </div>
 
-  <canvas id="remoteCanvas" width="240" height="120"></canvas>
-  <video id="remoteVideo" autoplay muted playsinline></video>
-
   <script>
     const state = {
       mode: 'screen',
@@ -1284,6 +1269,8 @@
         if (state.useCam) {
           try {
             state.camStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            camVideo.srcObject = state.camStream;
+
             // Apply circular style if enabled
             if ($('toggleCircleCam').checked) {
               camPip.classList.add('cam-circle');
@@ -1375,42 +1362,9 @@
         state.startTime = Date.now();
         state.seconds = 0;
         updateTimer();
-        state.timerInterval = setInterval(() => { if (!state.paused) { state.seconds++; updateTimer(); updateRemoteControl(); } }, 1000);
+        state.timerInterval = setInterval(() => { if (!state.paused) { state.seconds++; updateTimer(); } }, 1000);
         showToast('Recording started');
-
-        // Initial setup for Remote Control
-        if (document.pictureInPictureEnabled) {
-          const cvs = $('remoteCanvas');
-          const ctx = cvs.getContext('2d');
-          const stream = cvs.captureStream(10);
-          $('remoteVideo').srcObject = stream;
-          $('remoteVideo').onloadedmetadata = () => {
-            $('remoteVideo').requestPictureInPicture().catch(e => console.log("PiP Remote Blocked", e));
-          };
-          updateRemoteControl();
-        }
-
       } catch (err) { console.error(err); }
-    }
-
-    function updateRemoteControl() {
-      const cvs = $('remoteCanvas');
-      const ctx = cvs.getContext('2d');
-      // Background
-      ctx.fillStyle = '#070711';
-      ctx.fillRect(0, 0, 240, 120);
-      // Text
-      ctx.fillStyle = '#f0f0ff';
-      ctx.font = 'bold 40px Space Grotesk';
-      ctx.textAlign = 'center';
-      const h = String(Math.floor(state.seconds / 3600)).padStart(2, '0');
-      const m = String(Math.floor((state.seconds % 3600) / 60)).padStart(2, '0');
-      const s = String(state.seconds % 60).padStart(2, '0');
-      ctx.fillText(`${h}:${m}:${s}`, 120, 60);
-      // Status
-      ctx.font = '20px Space Grotesk';
-      ctx.fillStyle = state.paused ? '#fbbf24' : '#4ade80';
-      ctx.fillText(state.paused ? 'PAUSED (Alt+P)' : 'RECORDING (Alt+S)', 120, 95);
     }
 
     function togglePause() {
@@ -1437,9 +1391,6 @@
       if (state.screenStream) state.screenStream.getTracks().forEach(t => t.stop());
       if (state.camStream) state.camStream.getTracks().forEach(t => t.stop());
       if (state.micStream) state.micStream.getTracks().forEach(t => t.stop());
-      if (document.pictureInPictureElement && document.pictureInPictureElement.id === 'remoteVideo') {
-        document.exitPictureInPicture();
-      }
       state.recording = false;
       state.paused = false;
       recordingState.style.display = 'none';
