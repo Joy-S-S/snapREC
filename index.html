@@ -55,6 +55,8 @@
       min-height: 100vh;
       overflow-x: hidden;
       position: relative;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     /* BACKGROUND ORBS */
@@ -422,9 +424,18 @@
     }
 
     .custom-select option {
-      background: #12121e;
+      background: #181825;
       color: white;
-      padding: 10px;
+    }
+
+    .custom-select optgroup {
+      background: #181825;
+      color: var(--purple);
+      font-weight: 700;
+      font-style: normal;
+      text-transform: uppercase;
+      font-size: 0.65rem;
+      letter-spacing: 0.05em;
     }
 
     .custom-select:focus {
