@@ -1034,16 +1034,6 @@
           </div>
         </div>
 
-        <div class="settings-row" style="margin-top:10px;">
-          <div class="setting-group" style="grid-column: span 2;">
-            <div style="display:flex; justify-content:space-between;">
-              <span class="setting-label">Microphone Boost (Gain)</span>
-              <span id="gainVal" style="font-size:0.75rem; color:var(--purple); font-weight:600;">100%</span>
-            </div>
-            <input type="range" id="micGain" min="1" max="3" step="0.1" value="1"
-              style="width:100%; appearance:none; height:4px; background:var(--surface2); border-radius:4px; outline:none; margin-top:10px;" />
-          </div>
-        </div>
 
         <div class="record-btn-wrap">
           <button class="record-btn" id="btnStart" title="Start"></button>
@@ -1157,9 +1147,6 @@
       state.frameRate = Number(e.target.value);
     });
 
-    $('micGain').oninput = e => {
-      $('gainVal').textContent = Math.round(e.target.value * 100) + '%';
-    };
 
     // AUTO-DETECT HARDWARE LIMITS
     (async function detectHardware() {
@@ -1241,49 +1228,53 @@
           audio: state.useSysAudio
         };
         state.screenStream = await navigator.mediaDevices.getDisplayMedia(displayConstraints);
-
-        // Split tracks: Keep video and any screen audio
-        const tracks = [];
-        state.screenStream.getTracks().forEach(t => tracks.push(t));
+        // const tracks = [...state.screenStream.getTracks()]; // This line is moved/modified below
 
         if (state.useMic) {
           try {
             state.micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          } catch (e) {
+            console.error('Mic error', e);
+            showToast('Microphone access denied');
+          }
+        }
 
-            // Re-use current AudioContext or create new
-            state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const source = state.audioCtx.createMediaStreamSource(state.micStream);
-            const gainNode = state.audioCtx.createGain();
-            gainNode.gain.value = parseFloat($('micGain').value);
-            source.connect(gainNode);
+        // MIX AUDIO TRACKS (System + Mic)
+        const audioTracks = [];
+        const hasSysAudio = state.useSysAudio && state.screenStream.getAudioTracks().length > 0;
+        const hasMicAudio = state.useMic && state.micStream && state.micStream.getAudioTracks().length > 0;
 
-            const destination = state.audioCtx.createMediaStreamDestination();
-            gainNode.connect(destination);
+        if (hasSysAudio || hasMicAudio) {
+          state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const destination = state.audioCtx.createMediaStreamDestination();
 
-            if (state.audioCtx.state === 'suspended') await state.audioCtx.resume();
+          if (hasSysAudio) {
+            const sysSource = state.audioCtx.createMediaStreamSource(new MediaStream([state.screenStream.getAudioTracks()[0]]));
+            sysSource.connect(destination);
+          }
 
-            // Add the processed mic tracks to our collection
-            destination.stream.getAudioTracks().forEach(t => tracks.push(t));
-          } catch (e) { console.error('Mic error', e); }
+          if (hasMicAudio) {
+            const micSource = state.audioCtx.createMediaStreamSource(new MediaStream([state.micStream.getAudioTracks()[0]]));
+            micSource.connect(destination);
+          }
+
+          if (state.audioCtx.state === 'suspended') await state.audioCtx.resume();
+          audioTracks.push(destination.stream.getAudioTracks()[0]);
         }
 
         if (state.useCam) {
           try {
             state.camStream = await navigator.mediaDevices.getUserMedia({ video: true });
             camVideo.srcObject = state.camStream;
-
-            // Apply mirror style if enabled
             if ($('toggleMirror').checked) camVideo.classList.add('mirrored');
             else camVideo.classList.remove('mirrored');
 
-            // Wait for video to be ready and play
             await new Promise((resolve) => {
               camVideo.onloadedmetadata = () => {
                 camVideo.play().then(resolve);
               };
             });
 
-            // Trigger native floating window (MANDATORY)
             if (document.pictureInPictureEnabled) {
               await camVideo.requestPictureInPicture().catch(() => {
                 showToast('PiP blocked - Camera hidden');
@@ -1295,7 +1286,7 @@
           }
         }
 
-        const combined = new MediaStream(tracks);
+        const combined = new MediaStream([state.screenStream.getVideoTracks()[0], ...audioTracks]);
 
         // Show 3-2-1 Countdown
         const countdownEl = $('countdownOverlay');
