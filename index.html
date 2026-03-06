@@ -142,25 +142,6 @@
       padding: 28px 0 20px;
     }
 
-    /* CIRCULAR CAMERA */
-    .cam-circle {
-      border-radius: 50% !important;
-      aspect-ratio: 1/1 !important;
-      height: 180px !important;
-      width: 180px !important;
-      overflow: hidden;
-    }
-
-    .cam-circle video {
-      object-fit: cover !important;
-      width: 100% !important;
-      height: 100% !important;
-    }
-
-    .cam-circle .pip-label {
-      display: none;
-    }
-
     .mirrored {
       transform: scaleX(-1);
     }
@@ -1044,13 +1025,6 @@
               <span class="slider"></span>
             </label>
           </div>
-          <div class="toggle-item" id="toggleCircleCamWrap">
-            <label class="toggle-label" for="toggleCircleCam">Circle Cam</label>
-            <label class="toggle" for="toggleCircleCam">
-              <input type="checkbox" id="toggleCircleCam" />
-              <span class="slider"></span>
-            </label>
-          </div>
           <div class="toggle-item" id="toggleMirrorWrap">
             <label class="toggle-label" for="toggleMirror">Mirror Cam</label>
             <label class="toggle" for="toggleMirror">
@@ -1295,10 +1269,7 @@
             state.camStream = await navigator.mediaDevices.getUserMedia({ video: true });
             camVideo.srcObject = state.camStream;
 
-            // Apply circular/mirror style if enabled
-            if ($('toggleCircleCam').checked) camPip.classList.add('cam-circle');
-            else camPip.classList.remove('cam-circle');
-
+            // Apply mirror style if enabled
             if ($('toggleMirror').checked) camVideo.classList.add('mirrored');
             else camVideo.classList.remove('mirrored');
 
