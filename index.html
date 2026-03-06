@@ -404,15 +404,27 @@
       border-radius: var(--radius-sm);
       color: var(--text);
       padding: 12px 14px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-family: inherit;
       cursor: pointer;
       outline: none;
       transition: all 0.2s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
     }
 
     .custom-select:hover {
       border-color: var(--purple);
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .custom-select option {
+      background: #12121e;
+      color: white;
+      padding: 10px;
     }
 
     .custom-select:focus {
@@ -958,6 +970,49 @@
     $('selFPS').addEventListener('change', e => {
       state.frameRate = Number(e.target.value);
     });
+
+    // AUTO-DETECT HARDWARE LIMITS
+    (async function detectHardware() {
+      const sw = window.screen.width * window.devicePixelRatio;
+      const sh = window.screen.height * window.devicePixelRatio;
+
+      // Filter Resolutions
+      const resOptions = $('selResolution').options;
+      for (let i = 0; i < resOptions.length; i++) {
+        const opt = resOptions[i];
+        if (opt.value === 'max') continue;
+        const [w, h] = opt.value.split('x').map(Number);
+        if (w > sw || h > sh) {
+          opt.style.display = 'none';
+        }
+      }
+
+      // Filter FPS (Refresh Rate Detection)
+      const detectFPS = () => new Promise(resolve => {
+        let start = null;
+        let frames = 0;
+        const step = (timestamp) => {
+          if (!start) start = timestamp;
+          frames++;
+          if (timestamp - start < 1000) {
+            requestAnimationFrame(step);
+          } else {
+            resolve(frames);
+          }
+        };
+        requestAnimationFrame(step);
+      });
+
+      const maxHz = await detectFPS();
+      const fpsOptions = $('selFPS').options;
+      for (let i = 0; i < fpsOptions.length; i++) {
+        const opt = fpsOptions[i];
+        if (Number(opt.value) > maxHz + 5) { // +5 margin for variance
+          opt.style.display = 'none';
+          if (opt.selected) $('selFPS').value = "30"; // Fallback
+        }
+      }
+    })();
 
     $('btnGetStarted').addEventListener('click', () => {
       heroSection.style.display = 'none';
