@@ -142,6 +142,18 @@
       padding: 28px 0 20px;
     }
 
+    /* REMOTE CONTROL CANVAS (HIDDEN) */
+    #remoteCanvas {
+      display: none;
+    }
+
+    #remoteVideo {
+      position: fixed;
+      bottom: -100px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
     /* CIRCULAR CAMERA */
     .cam-circle {
       border-radius: 50% !important;
@@ -493,6 +505,84 @@
     .custom-select:focus {
       border-color: var(--purple);
       box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+    }
+
+    /* CUSTOM INPUTS */
+    .custom-input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      padding: 12px 14px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s;
+      width: 100%;
+    }
+
+    .custom-input:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+    }
+
+    /* TRIMMER STYLES */
+    .trim-section {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .trim-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .trim-range-wrap {
+      position: relative;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+    }
+
+    input[type="range"].trim-slider {
+      position: absolute;
+      width: 100%;
+      pointer-events: none;
+      appearance: none;
+      height: 0;
+      background: none;
+      z-index: 10;
+    }
+
+    input[type="range"].trim-slider::-webkit-slider-thumb {
+      appearance: none;
+      pointer-events: auto;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--purple);
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+      border: 2px solid white;
+    }
+
+    .trim-track {
+      position: absolute;
+      height: 4px;
+      background: var(--purple);
+      opacity: 0.4;
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 5;
     }
 
     /* TOGGLE SWITCHES */
@@ -894,15 +984,26 @@
 
         <div class="settings-row">
           <div class="setting-group">
+            <span class="setting-label">Project Name</span>
+            <input type="text" id="recordName" class="custom-input" placeholder="My Awesome Recording" />
+          </div>
+          <div class="setting-group">
             <span class="setting-label">Resolution</span>
             <select class="custom-select" id="selResolution">
-              <option value="max">Max (Native)</option>
-              <option value="3840x2160">4K (2160p)</option>
-              <option value="2560x1440">2K (1440p)</option>
-              <option value="1920x1080" selected>1080p (Full HD)</option>
-              <option value="1280x720">720p (HD)</option>
+              <optgroup label="Native">
+                <option value="max">Max (Native)</option>
+              </optgroup>
+              <optgroup label="HD Options">
+                <option value="3840x2160">4K (2160p)</option>
+                <option value="2560x1440">2K (1440p)</option>
+                <option value="1920x1080" selected>1080p (Full HD)</option>
+                <option value="1280x720">720p (HD)</option>
+              </optgroup>
             </select>
           </div>
+        </div>
+
+        <div class="settings-row" style="margin-top:-8px;">
           <div class="setting-group">
             <span class="setting-label">Frame Rate</span>
             <select class="custom-select" id="selFPS">
@@ -916,6 +1017,7 @@
               </optgroup>
             </select>
           </div>
+          <div class="setting-group" style="visibility:hidden"></div>
         </div>
 
         <div class="toggles-row">
@@ -949,6 +1051,17 @@
           </div>
         </div>
 
+        <div class="settings-row" style="margin-top:10px;">
+          <div class="setting-group" style="grid-column: span 2;">
+            <div style="display:flex; justify-content:space-between;">
+              <span class="setting-label">Microphone Boost (Gain)</span>
+              <span id="gainVal" style="font-size:0.75rem; color:var(--purple); font-weight:600;">100%</span>
+            </div>
+            <input type="range" id="micGain" min="1" max="3" step="0.1" value="1"
+              style="width:100%; appearance:none; height:4px; background:var(--surface2); border-radius:4px; outline:none; margin-top:10px;" />
+          </div>
+        </div>
+
         <div class="record-btn-wrap">
           <button class="record-btn" id="btnStart" title="Start"></button>
         </div>
@@ -977,8 +1090,24 @@
         <span class="panel-title">Recording</span>
       </div>
       <video id="previewVideo" controls></video>
+
+      <div class="trim-section">
+        <div class="trim-header">
+          <span>Trimmer <span class="grad-text">(Start & End)</span></span>
+          <span id="trimValues">0:00 - 0:00</span>
+        </div>
+        <div class="trim-range-wrap">
+          <div class="trim-track" id="trimTrack"></div>
+          <input type="range" id="trimStart" class="trim-slider" value="0" min="0" max="100" step="0.1" />
+          <input type="range" id="trimEnd" class="trim-slider" value="100" min="0" max="100" step="0.1" />
+        </div>
+      </div>
+
       <div class="preview-controls">
         <button class="btn btn-primary" id="btnDownloadFast">Download (.mp4)</button>
+        <button class="btn btn-secondary" id="btnTrimProcess"
+          style="background:rgba(168,85,247,0.1); border-color:var(--purple); color:var(--purple); display:none;">Confirm
+          Trim</button>
         <button class="btn btn-danger" id="btnDiscard">Discard</button>
       </div>
     </div>
@@ -989,6 +1118,9 @@
       <p>snapREC Static version · Everything stays local</p>
     </footer>
   </div>
+
+  <canvas id="remoteCanvas" width="240" height="120"></canvas>
+  <video id="remoteVideo" autoplay muted playsinline></video>
 
   <script>
     const state = {
@@ -1007,7 +1139,8 @@
       startTime: 0,
       width: 1920,
       height: 1080,
-      frameRate: 60
+      frameRate: 60,
+      duration: 0
     };
 
     const $ = id => document.getElementById(id);
@@ -1043,6 +1176,10 @@
     $('selFPS').addEventListener('change', e => {
       state.frameRate = Number(e.target.value);
     });
+
+    $('micGain').oninput = e => {
+      $('gainVal').textContent = Math.round(e.target.value * 100) + '%';
+    };
 
     // AUTO-DETECT HARDWARE LIMITS
     (async function detectHardware() {
@@ -1129,7 +1266,18 @@
         if (state.useMic) {
           try {
             state.micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            state.micStream.getAudioTracks().forEach(t => tracks.push(t));
+
+            // Audio Gain Logic
+            const audioCtx = new AudioContext();
+            const source = audioCtx.createMediaStreamSource(state.micStream);
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.value = parseFloat($('micGain').value);
+            source.connect(gainNode);
+
+            const destination = audioCtx.createMediaStreamDestination();
+            gainNode.connect(destination);
+
+            destination.stream.getAudioTracks().forEach(t => tracks.push(t));
           } catch (e) { console.error('Mic error', e); }
         }
 
@@ -1227,9 +1375,42 @@
         state.startTime = Date.now();
         state.seconds = 0;
         updateTimer();
-        state.timerInterval = setInterval(() => { if (!state.paused) { state.seconds++; updateTimer(); } }, 1000);
+        state.timerInterval = setInterval(() => { if (!state.paused) { state.seconds++; updateTimer(); updateRemoteControl(); } }, 1000);
         showToast('Recording started');
+
+        // Initial setup for Remote Control
+        if (document.pictureInPictureEnabled) {
+          const cvs = $('remoteCanvas');
+          const ctx = cvs.getContext('2d');
+          const stream = cvs.captureStream(10);
+          $('remoteVideo').srcObject = stream;
+          $('remoteVideo').onloadedmetadata = () => {
+            $('remoteVideo').requestPictureInPicture().catch(e => console.log("PiP Remote Blocked", e));
+          };
+          updateRemoteControl();
+        }
+
       } catch (err) { console.error(err); }
+    }
+
+    function updateRemoteControl() {
+      const cvs = $('remoteCanvas');
+      const ctx = cvs.getContext('2d');
+      // Background
+      ctx.fillStyle = '#070711';
+      ctx.fillRect(0, 0, 240, 120);
+      // Text
+      ctx.fillStyle = '#f0f0ff';
+      ctx.font = 'bold 40px Space Grotesk';
+      ctx.textAlign = 'center';
+      const h = String(Math.floor(state.seconds / 3600)).padStart(2, '0');
+      const m = String(Math.floor((state.seconds % 3600) / 60)).padStart(2, '0');
+      const s = String(state.seconds % 60).padStart(2, '0');
+      ctx.fillText(`${h}:${m}:${s}`, 120, 60);
+      // Status
+      ctx.font = '20px Space Grotesk';
+      ctx.fillStyle = state.paused ? '#fbbf24' : '#4ade80';
+      ctx.fillText(state.paused ? 'PAUSED (Alt+P)' : 'RECORDING (Alt+S)', 120, 95);
     }
 
     function togglePause() {
@@ -1256,6 +1437,9 @@
       if (state.screenStream) state.screenStream.getTracks().forEach(t => t.stop());
       if (state.camStream) state.camStream.getTracks().forEach(t => t.stop());
       if (state.micStream) state.micStream.getTracks().forEach(t => t.stop());
+      if (document.pictureInPictureElement && document.pictureInPictureElement.id === 'remoteVideo') {
+        document.exitPictureInPicture();
+      }
       state.recording = false;
       state.paused = false;
       recordingState.style.display = 'none';
@@ -1271,10 +1455,94 @@
     $('btnDownloadFast').addEventListener('click', () => {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(state.recordingBlob);
-      a.download = `recording-${Date.now()}.mp4`;
+      const name = $('recordName').value.trim().replace(/\s+/g, '_') || 'recording';
+      const date = new Date().toISOString().split('T')[0];
+      a.download = `${name}_${date}.mp4`;
       a.click();
       showToast('Download Complete!');
     });
+
+    // TRIM LOGIC
+    const trimStart = $('trimStart');
+    const trimEnd = $('trimEnd');
+    const trimTrack = $('trimTrack');
+    const trimValues = $('trimValues');
+    const btnTrim = $('btnTrimProcess');
+
+    function updateTrimUI() {
+      const dur = previewVideo.duration || 0;
+      const s = (trimStart.value / 100) * dur;
+      const e = (trimEnd.value / 100) * dur;
+
+      const format = t => (Math.floor(t / 60)) + ":" + (Math.floor(t % 60)).toString().padStart(2, '0');
+      trimValues.textContent = `${format(s)} - ${format(e)}`;
+
+      // Update track color
+      const left = trimStart.value + '%';
+      const width = (trimEnd.value - trimStart.value) + '%';
+      trimTrack.style.left = left;
+      trimTrack.style.width = width;
+
+      // Show confirm if changed
+      if (trimStart.value > 0 || trimEnd.value < 100) btnTrim.style.display = 'block';
+      else btnTrim.style.display = 'none';
+    }
+
+    trimStart.oninput = () => {
+      if (parseFloat(trimStart.value) >= parseFloat(trimEnd.value)) trimStart.value = trimEnd.value - 1;
+      previewVideo.currentTime = (trimStart.value / 100) * previewVideo.duration;
+      updateTrimUI();
+    };
+    trimEnd.oninput = () => {
+      if (parseFloat(trimEnd.value) <= parseFloat(trimStart.value)) trimEnd.value = parseFloat(trimStart.value) + 1;
+      previewVideo.currentTime = (trimEnd.value / 100) * previewVideo.duration;
+      updateTrimUI();
+    };
+
+    btnTrim.onclick = async () => {
+      const dur = previewVideo.duration;
+      const s = (trimStart.value / 100) * dur;
+      const e = (trimEnd.value / 100) * dur;
+
+      showToast('Trimming Video... Please wait');
+      btnTrim.disabled = true;
+      btnTrim.textContent = 'Processing...';
+
+      // Advanced client-side trimming using CaptureStream
+      const stream = previewVideo.captureStream();
+      const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+      const chunks = [];
+      recorder.ondataavailable = ev => chunks.push(ev.data);
+
+      previewVideo.currentTime = s;
+      previewVideo.play();
+      recorder.start();
+
+      const checkTrim = setInterval(() => {
+        if (previewVideo.currentTime >= e) {
+          clearInterval(checkTrim);
+          previewVideo.pause();
+          recorder.stop();
+        }
+      }, 100);
+
+      recorder.onstop = async () => {
+        let blob = new Blob(chunks, { type: 'video/webm' });
+        const newDur = (e - s) * 1000;
+        if (typeof ysFixWebmDuration === 'function') {
+          blob = await ysFixWebmDuration(blob, newDur);
+        }
+        state.recordingBlob = blob;
+        previewVideo.src = URL.createObjectURL(state.recordingBlob);
+        showToast('Trim Complete!');
+        btnTrim.textContent = 'Confirm Trim';
+        btnTrim.disabled = false;
+        btnTrim.style.display = 'none';
+        trimStart.value = 0;
+        trimEnd.value = 100;
+        updateTrimUI();
+      };
+    };
 
     $('btnDiscard').addEventListener('click', () => {
       // Memory cleanup: Release the video from RAM
@@ -1291,6 +1559,21 @@
       showToast('Memory cleared');
     });
 
+
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', e => {
+      if (!state.recording) return;
+      // Alt + S to Stop
+      if (e.altKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        stopRecording();
+      }
+      // Alt + P to Pause
+      if (e.altKey && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        togglePause();
+      }
+    });
 
     // Picture-in-Picture event listeners
     camVideo.addEventListener('enterpictureinpicture', () => {
