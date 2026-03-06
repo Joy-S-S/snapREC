@@ -142,6 +142,58 @@
       padding: 28px 0 20px;
     }
 
+    /* CIRCULAR CAMERA */
+    .cam-circle {
+      border-radius: 50% !important;
+      aspect-ratio: 1/1 !important;
+      height: 180px !important;
+      width: 180px !important;
+      overflow: hidden;
+    }
+
+    .cam-circle video {
+      object-fit: cover !important;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .cam-circle .pip-label {
+      display: none;
+    }
+
+    /* AUDIO VISUALIZER */
+    .mic-viz {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 16px;
+      margin-left: 10px;
+    }
+
+    .viz-bar {
+      width: 3px;
+      background: var(--purple);
+      border-radius: 2px;
+      transition: height 0.05s ease;
+    }
+
+    /* COUNTDOWN */
+    #countdownOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 7, 17, 0.85);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      font-size: 10rem;
+      font-weight: 800;
+      color: white;
+      text-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
+    }
+
     .logo {
       display: flex;
       align-items: center;
@@ -797,6 +849,8 @@
     <div class="orb orb-3"></div>
   </div>
 
+  <div id="countdownOverlay">3</div>
+
   <div id="camPip">
     <div class="pip-label">Camera</div>
     <video id="camVideo" autoplay muted playsinline></video>
@@ -886,6 +940,13 @@
               <span class="slider"></span>
             </label>
           </div>
+          <div class="toggle-item" id="toggleCircleCamWrap">
+            <label class="toggle-label" for="toggleCircleCam">Circle Cam</label>
+            <label class="toggle" for="toggleCircleCam">
+              <input type="checkbox" id="toggleCircleCam" />
+              <span class="slider"></span>
+            </label>
+          </div>
         </div>
 
         <div class="record-btn-wrap">
@@ -898,6 +959,7 @@
         <div class="status-row">
           <div class="status-dot recording" id="statusDot"></div>
           <span id="statusText">Recording</span>
+          <div class="mic-viz" id="micViz"></div>
         </div>
         <div class="timer-display" id="timerDisplay">00:00:00</div>
         <div class="record-btn-wrap">
@@ -1074,7 +1136,12 @@
         if (state.useCam) {
           try {
             state.camStream = await navigator.mediaDevices.getUserMedia({ video: true });
-            camVideo.srcObject = state.camStream;
+            // Apply circular style if enabled
+            if ($('toggleCircleCam').checked) {
+              camPip.classList.add('cam-circle');
+            } else {
+              camPip.classList.remove('cam-circle');
+            }
 
             // Wait for video to be ready and play
             await new Promise((resolve) => {
@@ -1099,6 +1166,37 @@
         }
 
         const combined = new MediaStream(tracks);
+
+        // Show 3-2-1 Countdown
+        const countdownEl = $('countdownOverlay');
+        countdownEl.style.display = 'flex';
+        for (let i = 3; i > 0; i--) {
+          countdownEl.textContent = i;
+          await new Promise(r => setTimeout(r, 1000));
+        }
+        countdownEl.style.display = 'none';
+
+        // Setup Mic Visualizer
+        if (state.useMic && state.micStream) {
+          const audioContext = new AudioContext();
+          const source = audioContext.createMediaStreamSource(state.micStream);
+          const analyser = audioContext.createAnalyser();
+          analyser.fftSize = 32;
+          source.connect(analyser);
+          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+          const viz = $('micViz');
+          viz.innerHTML = Array(8).fill('<div class="viz-bar"></div>').join('');
+          const bars = viz.querySelectorAll('.viz-bar');
+
+          state.vizInterval = setInterval(() => {
+            analyser.getByteFrequencyData(dataArray);
+            bars.forEach((bar, idx) => {
+              const val = dataArray[idx] || 0;
+              bar.style.height = Math.max(2, val / 8) + 'px';
+            });
+          }, 50);
+        }
+
         state.chunks = [];
         state.mediaRecorder = new MediaRecorder(combined, { mimeType: 'video/webm' });
         state.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) state.chunks.push(e.data); };
@@ -1154,6 +1252,7 @@
       if (!state.mediaRecorder) return;
       state.mediaRecorder.stop();
       clearInterval(state.timerInterval);
+      if (state.vizInterval) clearInterval(state.vizInterval);
       if (state.screenStream) state.screenStream.getTracks().forEach(t => t.stop());
       if (state.camStream) state.camStream.getTracks().forEach(t => t.stop());
       if (state.micStream) state.micStream.getTracks().forEach(t => t.stop());
