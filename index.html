@@ -1427,12 +1427,12 @@
       return URL.createObjectURL(blob);
     }
 
-    // FFmpeg.wasm lazy loader
+    // FFmpeg.wasm lazy loader (dynamic ESM import — no global variable needed)
     let _ffmpeg = null;
     async function getFFmpeg() {
       if (!_ffmpeg) {
-        const FFmpegClass = window.FFmpeg.FFmpeg || window.FFmpeg;
-        _ffmpeg = new FFmpegClass();
+        const { FFmpeg } = await import('https://esm.sh/@ffmpeg/ffmpeg@0.12.10');
+        _ffmpeg = new FFmpeg();
         _ffmpeg.on('progress', ({ progress }) => {
           const pct = Math.min(Math.max(Math.round(progress * 100), 0), 99);
           $('btnDownloadFast').textContent = `Converting... ${pct}%`;
@@ -1665,8 +1665,6 @@
       });
     })(camPip);
   </script>
-  <!-- FFmpeg.wasm UMD build (unpkg sends CORP headers, works with COEP) -->
-  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js" crossorigin="anonymous"></script>
   <!-- Fixed helper for WebM seekability -->
   <script src="https://cdn.jsdelivr.net/npm/fix-webm-duration@1.0.5/fix-webm-duration.js"></script>
 </body>
