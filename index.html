@@ -974,7 +974,7 @@
         <div class="pill"><span class="dot" style="background:#a855f7"></span>Screen</div>
         <div class="pill"><span class="dot" style="background:#22d3ee"></span>Camera Overlay</div>
         <div class="pill"><span class="dot" style="background:#ec4899"></span>Audio</div>
-        <div class="pill"><span class="dot" style="background:#4ade80"></span>WebM Export</div>
+        <div class="pill"><span class="dot" style="background:#4ade80"></span>MP4 Export</div>
         <div class="pill"><span class="dot" style="background:#f87171"></span>Privacy</div>
       </div>
 
@@ -1104,6 +1104,7 @@
 
       <div class="preview-controls">
         <button class="btn btn-primary" id="btnDownloadFast">Download (.mp4)</button>
+        <button class="btn btn-secondary" id="btnDownloadWebm">Quick Download (.webm)</button>
         <button class="btn btn-secondary" id="btnTrimProcess"
           style="background:rgba(168,85,247,0.1); border-color:var(--purple); color:var(--purple); display:none;">Confirm
           Trim</button>
@@ -1414,14 +1415,82 @@
     $('btnPause').addEventListener('click', togglePause);
     $('btnStop').addEventListener('click', stopRecording);
 
-    $('btnDownloadFast').addEventListener('click', () => {
+    // FFmpeg.wasm lazy loader
+    let _ffmpeg = null;
+    async function getFFmpeg() {
+      if (!_ffmpeg) {
+        _ffmpeg = FFmpeg.createFFmpeg({
+          log: false,
+          progress: ({ ratio }) => {
+            const pct = Math.min(Math.max(Math.round(ratio * 100), 0), 99);
+            $('btnDownloadFast').textContent = `Converting... ${pct}%`;
+          }
+        });
+      }
+      if (!_ffmpeg.isLoaded()) {
+        await _ffmpeg.load();
+      }
+      return _ffmpeg;
+    }
+
+    $('btnDownloadFast').addEventListener('click', async () => {
+      const btn = $('btnDownloadFast');
+      if (btn.disabled) return;
+      btn.disabled = true;
+
+      const name = $('recordName').value.trim().replace(/\s+/g, '_') || 'recording';
+      const date = new Date().toISOString().split('T')[0];
+
+      try {
+        btn.textContent = 'Loading encoder...';
+        const ffmpeg = await getFFmpeg();
+
+        btn.textContent = 'Preparing...';
+        const inputData = new Uint8Array(await state.recordingBlob.arrayBuffer());
+        ffmpeg.FS('writeFile', 'input.webm', inputData);
+
+        btn.textContent = 'Converting... 0%';
+        await ffmpeg.run(
+          '-i', 'input.webm',
+          '-c:v', 'libx264',
+          '-preset', 'fast',
+          '-crf', '23',
+          '-c:a', 'aac',
+          '-movflags', '+faststart',
+          'output.mp4'
+        );
+
+        btn.textContent = 'Saving...';
+        const data = ffmpeg.FS('readFile', 'output.mp4');
+        const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
+
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(mp4Blob);
+        a.download = `${name}_${date}.mp4`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+
+        ffmpeg.FS('unlink', 'input.webm');
+        ffmpeg.FS('unlink', 'output.mp4');
+
+        showToast('MP4 Download Complete!');
+      } catch (e) {
+        console.error('MP4 conversion failed:', e);
+        showToast('Conversion failed — try Quick .webm download');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Download (.mp4)';
+      }
+    });
+
+    $('btnDownloadWebm').addEventListener('click', () => {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(state.recordingBlob);
       const name = $('recordName').value.trim().replace(/\s+/g, '_') || 'recording';
       const date = new Date().toISOString().split('T')[0];
-      a.download = `${name}_${date}.mp4`;
+      a.download = `${name}_${date}.webm`;
       a.click();
-      showToast('Download Complete!');
+      showToast('WebM Download Complete!');
     });
 
     // TRIM LOGIC
@@ -1583,6 +1652,8 @@
       });
     })(camPip);
   </script>
+  <!-- FFmpeg.wasm for client-side WebM → MP4 transcoding -->
+  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
   <!-- Fixed helper for WebM seekability -->
   <script src="https://cdn.jsdelivr.net/npm/fix-webm-duration@1.0.5/fix-webm-duration.js"></script>
 </body>
