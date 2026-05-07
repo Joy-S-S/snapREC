@@ -948,7 +948,7 @@
   <canvas id="camCanvas" style="position:fixed;left:-9999px;top:-9999px;opacity:0;pointer-events:none;z-index:-1;"></canvas>
   <div id="camPip">
     <div class="pip-label">Camera</div>
-    <video id="camVideo" autoplay muted playsinline></video>
+    <video id="camVideo" muted playsinline></video>
   </div>
 
   <div id="toast">Done</div>
@@ -1330,12 +1330,20 @@
             // Feed the canvas stream to the PiP video element
             const canvasStream = camCanvas.captureStream(30);
             camVideo.srcObject = canvasStream;
+            await new Promise(resolve => { camVideo.onloadedmetadata = resolve; });
             await camVideo.play();
 
             if (document.pictureInPictureEnabled) {
-              await camVideo.requestPictureInPicture().catch(() => {
-                showToast('PiP blocked - Camera hidden');
-              });
+              try {
+                await camVideo.requestPictureInPicture();
+              } catch (pipErr) {
+                // PiP blocked — show camera in-page instead
+                camPip.classList.add('active');
+                showToast('PiP blocked - showing camera in-page');
+              }
+            } else {
+              // PiP not supported — show camera in-page
+              camPip.classList.add('active');
             }
           } catch (e) {
             console.error('Cam error', e);
