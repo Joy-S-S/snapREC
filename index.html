@@ -1427,11 +1427,12 @@
       return URL.createObjectURL(blob);
     }
 
-    // FFmpeg.wasm lazy loader (dynamic ESM import — no global variable needed)
+    // FFmpeg.wasm lazy loader
     let _ffmpeg = null;
     async function getFFmpeg() {
       if (!_ffmpeg) {
-        const { FFmpeg } = await import('https://esm.sh/@ffmpeg/ffmpeg@0.12.10');
+        // The UMD build exposes global 'FFmpegWASM'
+        const { FFmpeg } = FFmpegWASM;
         _ffmpeg = new FFmpeg();
         _ffmpeg.on('progress', ({ progress }) => {
           const pct = Math.min(Math.max(Math.round(progress * 100), 0), 99);
@@ -1665,6 +1666,8 @@
       });
     })(camPip);
   </script>
+  <!-- FFmpeg.wasm UMD build -->
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
   <!-- Fixed helper for WebM seekability -->
   <script src="https://cdn.jsdelivr.net/npm/fix-webm-duration@1.0.5/fix-webm-duration.js"></script>
 </body>
