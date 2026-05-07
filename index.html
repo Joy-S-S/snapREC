@@ -148,6 +148,10 @@
       flex-shrink: 0;
     }
 
+    .mirrored {
+      transform: scaleX(-1);
+    }
+
     /* HIDDEN PIE FOR PIP */
     #camPip {
       position: fixed;
@@ -793,6 +797,7 @@
     #camPip video {
       width: 100%;
       display: block;
+      transform: scaleX(-1);
       border-radius: inherit;
     }
 
@@ -945,10 +950,9 @@
 
   <div id="countdownOverlay">3</div>
 
-  <canvas id="camCanvas" style="position:fixed;left:-9999px;top:-9999px;opacity:0;pointer-events:none;z-index:-1;"></canvas>
   <div id="camPip">
     <div class="pip-label">Camera</div>
-    <video id="camVideo" muted playsinline></video>
+    <video id="camVideo" autoplay muted playsinline></video>
   </div>
 
   <div id="toast">Done</div>
@@ -1130,9 +1134,7 @@
       width: 1920,
       height: 1080,
       frameRate: 60,
-      duration: 0,
-      mirrorCam: false,
-      camDrawLoop: null
+      duration: 0
     };
 
     const $ = id => document.getElementById(id);
@@ -1152,9 +1154,6 @@
     $('toggleCam').addEventListener('change', e => { state.useCam = e.target.checked; });
     $('toggleMic').addEventListener('change', e => { state.useMic = e.target.checked; });
     $('toggleSysAudio').addEventListener('change', e => { state.useSysAudio = e.target.checked; });
-    $('toggleMirror').addEventListener('change', e => {
-      state.mirrorCam = e.target.checked;
-    });
 
     $('selResolution').addEventListener('change', e => {
       const val = e.target.value;
@@ -1290,60 +1289,20 @@
         if (state.useCam) {
           try {
             state.camStream = await navigator.mediaDevices.getUserMedia({ video: true });
-            state.mirrorCam = $('toggleMirror').checked;
+            camVideo.srcObject = state.camStream;
+            if ($('toggleMirror').checked) camVideo.classList.add('mirrored');
+            else camVideo.classList.remove('mirrored');
 
-            // Use a hidden canvas to draw camera frames (mirrored or not)
-            // so that PiP also respects the mirror setting
-            const camCanvas = $('camCanvas');
-            const camCtx = camCanvas.getContext('2d');
-
-            // Temp video to decode the raw camera stream
-            const rawCam = document.createElement('video');
-            rawCam.srcObject = state.camStream;
-            rawCam.muted = true;
-            rawCam.playsInline = true;
-            await rawCam.play();
-
-            // Wait for video dimensions
-            await new Promise(resolve => {
-              if (rawCam.videoWidth > 0) return resolve();
-              rawCam.onloadedmetadata = resolve;
+            await new Promise((resolve) => {
+              camVideo.onloadedmetadata = () => {
+                camVideo.play().then(resolve);
+              };
             });
 
-            camCanvas.width = rawCam.videoWidth || 640;
-            camCanvas.height = rawCam.videoHeight || 480;
-
-            // Draw loop: render each frame onto the canvas (mirrored if toggled)
-            function drawCamFrame() {
-              if (!state.recording) return;
-              camCtx.save();
-              if (state.mirrorCam) {
-                camCtx.translate(camCanvas.width, 0);
-                camCtx.scale(-1, 1);
-              }
-              camCtx.drawImage(rawCam, 0, 0, camCanvas.width, camCanvas.height);
-              camCtx.restore();
-              state.camDrawLoop = requestAnimationFrame(drawCamFrame);
-            }
-            drawCamFrame();
-
-            // Feed the canvas stream to the PiP video element
-            const canvasStream = camCanvas.captureStream(30);
-            camVideo.srcObject = canvasStream;
-            await new Promise(resolve => { camVideo.onloadedmetadata = resolve; });
-            await camVideo.play();
-
             if (document.pictureInPictureEnabled) {
-              try {
-                await camVideo.requestPictureInPicture();
-              } catch (pipErr) {
-                // PiP blocked — show camera in-page instead
-                camPip.classList.add('active');
-                showToast('PiP blocked - showing camera in-page');
-              }
-            } else {
-              // PiP not supported — show camera in-page
-              camPip.classList.add('active');
+              await camVideo.requestPictureInPicture().catch(() => {
+                showToast('PiP blocked - Camera hidden');
+              });
             }
           } catch (e) {
             console.error('Cam error', e);
@@ -1441,7 +1400,6 @@
       clearInterval(state.timerInterval);
       if (state.vizInterval) clearInterval(state.vizInterval);
       if (state.screenStream) state.screenStream.getTracks().forEach(t => t.stop());
-      if (state.camDrawLoop) cancelAnimationFrame(state.camDrawLoop);
       if (state.camStream) state.camStream.getTracks().forEach(t => t.stop());
       if (state.micStream) state.micStream.getTracks().forEach(t => t.stop());
       state.recording = false;
