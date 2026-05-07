@@ -1415,11 +1415,23 @@
     $('btnPause').addEventListener('click', togglePause);
     $('btnStop').addEventListener('click', stopRecording);
 
-    // FFmpeg.wasm 0.12.x lazy loader (single-threaded, no SharedArrayBuffer needed)
+    // FFmpeg.wasm helpers (fetchFile / toBlobURL)
+    async function fetchFile(file) {
+      if (file instanceof Blob) return new Uint8Array(await file.arrayBuffer());
+      const res = await fetch(file);
+      return new Uint8Array(await res.arrayBuffer());
+    }
+    async function toBlobURL(url, mimeType) {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      return URL.createObjectURL(blob);
+    }
+
+    // FFmpeg.wasm lazy loader
     let _ffmpeg = null;
     async function getFFmpeg() {
       if (!_ffmpeg) {
-        const { FFmpeg: FFmpegClass, toBlobURL } = window.ffmpegWasm;
+        const FFmpegClass = window.FFmpeg.FFmpeg || window.FFmpeg;
         _ffmpeg = new FFmpegClass();
         _ffmpeg.on('progress', ({ progress }) => {
           const pct = Math.min(Math.max(Math.round(progress * 100), 0), 99);
@@ -1427,10 +1439,9 @@
         });
       }
       if (!_ffmpeg.loaded) {
-        const { toBlobURL } = window.ffmpegWasm;
         await _ffmpeg.load({
-          coreURL: await toBlobURL('https://cdn.jsdelivr.net/npm/@ffmpeg/core-st@0.12.6/dist/umd/ffmpeg-core.js', 'text/javascript'),
-          wasmURL: await toBlobURL('https://cdn.jsdelivr.net/npm/@ffmpeg/core-st@0.12.6/dist/umd/ffmpeg-core.wasm', 'application/wasm'),
+          coreURL: await toBlobURL('https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js', 'text/javascript'),
+          wasmURL: await toBlobURL('https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm', 'application/wasm'),
         });
       }
       return _ffmpeg;
@@ -1449,7 +1460,6 @@
         const ffmpeg = await getFFmpeg();
 
         btn.textContent = 'Preparing...';
-        const { fetchFile } = window.ffmpegWasm;
         await ffmpeg.writeFile('input.webm', await fetchFile(state.recordingBlob));
 
         btn.textContent = 'Converting... 0%';
@@ -1655,15 +1665,10 @@
       });
     })(camPip);
   </script>
+  <!-- FFmpeg.wasm UMD build (works with COOP/COEP headers on Netlify) -->
+  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
   <!-- Fixed helper for WebM seekability -->
   <script src="https://cdn.jsdelivr.net/npm/fix-webm-duration@1.0.5/fix-webm-duration.js"></script>
-  <!-- FFmpeg.wasm 0.12.x single-threaded (no SharedArrayBuffer required) -->
-  <script type="module">
-    import { FFmpeg } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js';
-    import { fetchFile, toBlobURL } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js';
-
-    window.ffmpegWasm = { FFmpeg, fetchFile, toBlobURL };
-  </script>
 </body>
 
 </html>
