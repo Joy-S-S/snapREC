@@ -1432,7 +1432,6 @@
     let _ffmpeg = null;
     async function getFFmpeg() {
       if (!_ffmpeg) {
-        // The UMD build exposes global 'FFmpegWASM'
         const { FFmpeg } = FFmpegWASM;
         _ffmpeg = new FFmpeg();
         _ffmpeg.on('progress', ({ progress }) => {
@@ -1442,10 +1441,16 @@
       }
       if (!_ffmpeg.loaded) {
         try {
+          // Using a Data URI for the worker to bypass origin/CORS restrictions on Netlify
+          const workerBlob = new Blob([
+            `importScripts("https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js");`
+          ], { type: 'text/javascript' });
+          const workerURL = URL.createObjectURL(workerBlob);
+
           await _ffmpeg.load({
             coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
             wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm',
-            classWorkerURL: await toBlobURL('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js', 'text/javascript')
+            classWorkerURL: workerURL
           });
         } catch (err) {
           console.error('Failed to load FFmpeg core:', err);
