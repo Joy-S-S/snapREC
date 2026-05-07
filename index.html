@@ -1440,8 +1440,8 @@
       }
       if (!_ffmpeg.loaded) {
         await _ffmpeg.load({
-          coreURL: await toBlobURL('https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js', 'text/javascript'),
-          wasmURL: await toBlobURL('https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm', 'application/wasm'),
+          coreURL: await toBlobURL('https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js', 'text/javascript'),
+          wasmURL: await toBlobURL('https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm', 'application/wasm'),
         });
       }
       return _ffmpeg;
@@ -1665,8 +1665,8 @@
       });
     })(camPip);
   </script>
-  <!-- FFmpeg.wasm UMD build (works with COOP/COEP headers on Netlify) -->
-  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
+  <!-- FFmpeg.wasm UMD build (unpkg sends CORP headers, works with COEP) -->
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js" crossorigin="anonymous"></script>
   <!-- Fixed helper for WebM seekability -->
   <script src="https://cdn.jsdelivr.net/npm/fix-webm-duration@1.0.5/fix-webm-duration.js"></script>
 </body>
