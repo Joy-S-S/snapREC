@@ -1428,11 +1428,11 @@
       return URL.createObjectURL(blob);
     }
 
-    // FFmpeg.wasm lazy loader
+    // FFmpeg.wasm lazy loader (ESM version)
     let _ffmpeg = null;
     async function getFFmpeg() {
       if (!_ffmpeg) {
-        const { FFmpeg } = FFmpegWASM;
+        const { FFmpeg } = await import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js');
         _ffmpeg = new FFmpeg();
         _ffmpeg.on('progress', ({ progress }) => {
           const pct = Math.min(Math.max(Math.round(progress * 100), 0), 99);
@@ -1441,16 +1441,11 @@
       }
       if (!_ffmpeg.loaded) {
         try {
-          // Using a Data URI for the worker to bypass origin/CORS restrictions on Netlify
-          const workerBlob = new Blob([
-            `importScripts("https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js");`
-          ], { type: 'text/javascript' });
-          const workerURL = URL.createObjectURL(workerBlob);
-
+          const { toBlobURL } = window.ffmpegUtil;
+          const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
           await _ffmpeg.load({
-            coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
-            wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm',
-            classWorkerURL: workerURL
+            coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+            wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm')
           });
         } catch (err) {
           console.error('Failed to load FFmpeg core:', err);
@@ -1678,8 +1673,11 @@
       });
     })(camPip);
   </script>
-  <!-- FFmpeg.wasm UMD build -->
-  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
+  <!-- FFmpeg.wasm ESM utilities -->
+  <script type="module">
+    import { toBlobURL } from 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js';
+    window.ffmpegUtil = { toBlobURL };
+  </script>
   <!-- Fixed helper for WebM seekability -->
   <script src="https://cdn.jsdelivr.net/npm/fix-webm-duration@1.0.5/fix-webm-duration.js"></script>
 </body>
