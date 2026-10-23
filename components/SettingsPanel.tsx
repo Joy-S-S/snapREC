@@ -42,40 +42,40 @@ export function SettingsPanel({
 }: SettingsPanelProps) {
   return (
     <Card className="border-border/70 shadow-md">
-      <CardHeader className="pb-3 pt-5 px-5">
+      <CardHeader className="pb-2.5 pt-3.5 px-4 sm:px-4.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <SlidersHorizontal className="h-4 w-4 text-purple-500" />
-            <CardTitle className="text-base font-semibold">Studio Settings</CardTitle>
+            <CardTitle className="text-sm sm:text-base font-semibold">Studio Settings</CardTitle>
           </div>
-          <span className="text-xs text-muted-foreground">Tailor your recording</span>
+          <span className="text-[11px] text-muted-foreground">Customize stream</span>
         </div>
       </CardHeader>
 
-      <CardContent className="px-5 pb-5">
+      <CardContent className="px-4 sm:px-4.5 pb-4">
         <Tabs defaultValue="video" className="w-full">
-          <TabsList className="grid grid-cols-4 mb-4 h-9">
-            <TabsTrigger value="video" className="text-xs gap-1.5">
-              <Video className="h-3.5 w-3.5" />
+          <TabsList className="grid grid-cols-4 mb-3 h-8 text-xs">
+            <TabsTrigger value="video" className="text-[11px] px-1 py-1 gap-1">
+              <Video className="h-3 w-3" />
               <span>Video</span>
             </TabsTrigger>
-            <TabsTrigger value="audio" className="text-xs gap-1.5">
-              <Mic className="h-3.5 w-3.5" />
+            <TabsTrigger value="audio" className="text-[11px] px-1 py-1 gap-1">
+              <Mic className="h-3 w-3" />
               <span>Audio</span>
             </TabsTrigger>
-            <TabsTrigger value="webcam" className="text-xs gap-1.5">
-              <Camera className="h-3.5 w-3.5" />
-              <span>Webcam</span>
+            <TabsTrigger value="webcam" className="text-[11px] px-1 py-1 gap-1">
+              <Camera className="h-3 w-3" />
+              <span>Cam</span>
             </TabsTrigger>
-            <TabsTrigger value="general" className="text-xs gap-1.5">
-              <Settings2 className="h-3.5 w-3.5" />
+            <TabsTrigger value="general" className="text-[11px] px-1 py-1 gap-1">
+              <Settings2 className="h-3 w-3" />
               <span>General</span>
             </TabsTrigger>
           </TabsList>
 
           {/* 1. VIDEO SETTINGS */}
-          <TabsContent value="video" className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <TabsContent value="video" className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3">
               {/* Resolution */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">Output Resolution</Label>
@@ -260,8 +260,8 @@ export function SettingsPanel({
           </TabsContent>
 
           {/* 3. WEBCAM SETTINGS */}
-          <TabsContent value="webcam" className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <TabsContent value="webcam" className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3">
               {/* Camera Device */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">Camera Device</Label>
@@ -360,8 +360,8 @@ export function SettingsPanel({
           </TabsContent>
 
           {/* 4. GENERAL SETTINGS */}
-          <TabsContent value="general" className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <TabsContent value="general" className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3">
               {/* Project Filename */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">Default Filename</Label>

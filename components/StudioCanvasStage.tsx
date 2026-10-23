@@ -10,7 +10,6 @@ import {
   Pause,
   Play,
   Square,
-  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -65,14 +64,14 @@ export function StudioCanvasStage({
   const getPositionClasses = (pos: StudioSettings['camPosition']) => {
     switch (pos) {
       case 'top-left':
-        return 'top-4 left-4';
+        return 'top-3 left-3';
       case 'top-right':
-        return 'top-4 right-4';
+        return 'top-3 right-3';
       case 'bottom-left':
-        return 'bottom-4 left-4';
+        return 'bottom-3 left-3';
       case 'bottom-right':
       default:
-        return 'bottom-4 right-4';
+        return 'bottom-3 right-3';
     }
   };
 
@@ -91,12 +90,12 @@ export function StudioCanvasStage({
   const getSizeClasses = (size: StudioSettings['camSize']) => {
     switch (size) {
       case 'small':
-        return 'w-24 h-24 sm:w-28 sm:h-28';
+        return 'w-20 h-20 sm:w-24 sm:h-24';
       case 'large':
-        return 'w-44 h-44 sm:w-52 sm:h-52';
+        return 'w-36 h-36 sm:w-44 sm:h-44';
       case 'medium':
       default:
-        return 'w-32 h-32 sm:w-40 sm:h-40';
+        return 'w-28 h-28 sm:w-34 sm:h-34';
     }
   };
 
@@ -108,7 +107,7 @@ export function StudioCanvasStage({
   ];
 
   return (
-    <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-br from-neutral-900 to-black shadow-2xl flex items-center justify-center">
+    <div className="relative aspect-video w-full max-h-[46vh] sm:max-h-[42vh] lg:max-h-[48vh] overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-br from-neutral-900 to-black shadow-xl flex items-center justify-center">
       {/* 1. Live Screen Video if available */}
       {previewStream && (
         <video
@@ -122,38 +121,38 @@ export function StudioCanvasStage({
 
       {/* 2. Idle State Placeholder Stage */}
       {!previewStream && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none">
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-4 sm:p-6 text-center select-none">
           {/* Ambient glow */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col items-center max-w-md">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 mb-4 shadow-lg shadow-purple-500/10">
-              <Monitor className="h-8 w-8 text-purple-400" />
+          <div className="relative z-10 flex flex-col items-center max-w-sm">
+            <div className="flex h-11 w-11 sm:h-13 sm:w-13 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 mb-2 sm:mb-3 shadow-md shadow-purple-500/10">
+              <Monitor className="h-5 w-5 sm:h-6 sm:w-6 text-purple-400" />
             </div>
 
-            <h3 className="text-xl font-bold tracking-tight text-white mb-2">
+            <h3 className="text-base sm:text-lg font-bold tracking-tight text-white mb-1">
               Studio Stage Ready
             </h3>
-            <p className="text-sm text-neutral-400 mb-6 leading-relaxed">
-              {settings.mode === 'screen_cam' && 'Screen + webcam will be recorded together in 1080p/4K.'}
-              {settings.mode === 'screen_only' && 'Select your screen, application window, or browser tab to capture.'}
-              {settings.mode === 'cam_only' && 'Your webcam will be recorded in full-frame.'}
-              {settings.mode === 'audio_only' && 'Microphone and system audio will be captured into high-fidelity audio.'}
+            <p className="text-xs text-neutral-400 mb-3 sm:mb-4 leading-relaxed line-clamp-2">
+              {settings.mode === 'screen_cam' && 'Record screen with customized webcam overlay.'}
+              {settings.mode === 'screen_only' && 'Select your screen, application window, or browser tab.'}
+              {settings.mode === 'cam_only' && 'Webcam will be recorded in full-frame.'}
+              {settings.mode === 'audio_only' && 'Capture voice and system sound.'}
             </p>
 
             <Button
-              size="lg"
+              size="default"
               onClick={onStart}
-              className="gap-2.5 rounded-full px-8 py-6 text-base font-semibold shadow-lg shadow-purple-500/25 bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white border-0 transition-transform hover:scale-105 active:scale-95"
+              className="gap-2 rounded-full px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold shadow-md shadow-purple-500/25 bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white border-0 transition-transform hover:scale-105 active:scale-95"
             >
-              <div className="h-3 w-3 rounded-full bg-white animate-pulse" />
+              <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
               Start Recording
             </Button>
           </div>
 
           {/* Interactive corner target pins when Screen + Cam is selected */}
           {settings.mode === 'screen_cam' && (
-            <div className="absolute inset-0 p-4 pointer-events-none">
+            <div className="absolute inset-0 p-3 pointer-events-none">
               {corners.map((corner) => {
                 const isActive = settings.camPosition === corner;
                 return (
@@ -162,14 +161,14 @@ export function StudioCanvasStage({
                     type="button"
                     onClick={() => onPositionChange(corner)}
                     className={cn(
-                      'pointer-events-auto absolute p-1.5 rounded-lg border text-[11px] font-medium transition-all',
+                      'pointer-events-auto absolute p-1 sm:p-1.5 rounded-md border text-[10px] font-medium transition-all',
                       isActive
-                        ? 'border-purple-500 bg-purple-500/30 text-white shadow-md shadow-purple-500/30'
+                        ? 'border-purple-500 bg-purple-500/30 text-white shadow-sm shadow-purple-500/30'
                         : 'border-white/10 bg-black/40 text-neutral-400 hover:text-white hover:border-white/30',
-                      corner === 'top-left' && 'top-3 left-3',
-                      corner === 'top-right' && 'top-3 right-3',
-                      corner === 'bottom-left' && 'bottom-3 left-3',
-                      corner === 'bottom-right' && 'bottom-3 right-3'
+                      corner === 'top-left' && 'top-2.5 left-2.5',
+                      corner === 'top-right' && 'top-2.5 right-2.5',
+                      corner === 'bottom-left' && 'bottom-2.5 left-2.5',
+                      corner === 'bottom-right' && 'bottom-2.5 right-2.5'
                     )}
                   >
                     {corner.replace('-', ' ')}
@@ -185,7 +184,7 @@ export function StudioCanvasStage({
       {settings.mode === 'screen_cam' && (
         <div
           className={cn(
-            'absolute transition-all duration-300 z-20 overflow-hidden shadow-2xl border-2 border-white/80 ring-2 ring-purple-500/50 bg-black',
+            'absolute transition-all duration-300 z-20 overflow-hidden shadow-xl border-2 border-white/80 ring-2 ring-purple-500/50 bg-black',
             getPositionClasses(settings.camPosition),
             getShapeClasses(settings.camShape),
             getSizeClasses(settings.camSize)
@@ -204,8 +203,8 @@ export function StudioCanvasStage({
             />
           ) : (
             <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-tr from-purple-900/60 to-black p-2 text-center text-white/80">
-              <Video className="h-6 w-6 text-purple-400 mb-1" />
-              <span className="text-[10px] font-semibold tracking-wide uppercase">Webcam</span>
+              <Video className="h-5 w-5 text-purple-400 mb-0.5" />
+              <span className="text-[9px] font-semibold tracking-wide uppercase">Webcam</span>
             </div>
           )}
         </div>
@@ -215,10 +214,10 @@ export function StudioCanvasStage({
       {status === 'countdown' && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
           <div className="flex flex-col items-center">
-            <span className="text-8xl sm:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-300 animate-bounce drop-shadow-[0_0_35px_rgba(168,85,247,0.5)]">
+            <span className="text-7xl sm:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-300 animate-bounce drop-shadow-[0_0_30px_rgba(168,85,247,0.5)]">
               {countdownNumber}
             </span>
-            <span className="text-sm font-semibold tracking-widest text-neutral-400 uppercase mt-2">
+            <span className="text-xs font-semibold tracking-widest text-neutral-400 uppercase mt-2">
               Get Ready
             </span>
           </div>
@@ -227,15 +226,15 @@ export function StudioCanvasStage({
 
       {/* 5. In-Stage Floating Recording Bar when Recording */}
       {(status === 'recording' || status === 'paused') && (
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 rounded-full border border-white/15 bg-black/80 px-4 py-2 backdrop-blur-lg shadow-2xl">
-          <div className="flex items-center gap-2 pr-2 border-r border-white/10">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 rounded-full border border-white/15 bg-black/80 px-3.5 py-1.5 backdrop-blur-lg shadow-xl">
+          <div className="flex items-center gap-1.5 pr-2 border-r border-white/10">
             <div
               className={cn(
-                'h-2.5 w-2.5 rounded-full',
+                'h-2 w-2 rounded-full',
                 status === 'recording' ? 'bg-red-500 animate-ping' : 'bg-amber-500'
               )}
             />
-            <span className="font-mono text-sm font-bold text-white tracking-wider">
+            <span className="font-mono text-xs font-bold text-white tracking-wider">
               {formatTimer(elapsedSeconds)}
             </span>
           </div>
@@ -244,30 +243,30 @@ export function StudioCanvasStage({
             size="icon"
             variant="ghost"
             onClick={onPauseToggle}
-            className="h-8 w-8 text-white hover:bg-white/20 rounded-full"
+            className="h-7 w-7 text-white hover:bg-white/20 rounded-full"
             title={status === 'recording' ? 'Pause Recording' : 'Resume Recording'}
           >
-            {status === 'recording' ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            {status === 'recording' ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
           </Button>
 
           <Button
             size="icon"
             variant="destructive"
             onClick={onStop}
-            className="h-8 w-8 rounded-full shadow-md shadow-red-500/30"
+            className="h-7 w-7 rounded-full shadow-sm shadow-red-500/30"
             title="Stop & Save Recording"
           >
-            <Square className="h-3.5 w-3.5 fill-current" />
+            <Square className="h-3 w-3 fill-current" />
           </Button>
         </div>
       )}
 
       {/* Top right badges */}
-      <div className="absolute top-4 right-4 z-10 hidden sm:flex items-center gap-2 pointer-events-none">
-        <Badge variant="secondary" className="bg-black/60 backdrop-blur-md text-neutral-300 border border-white/10 text-xs">
+      <div className="absolute top-3 right-3 z-10 hidden sm:flex items-center gap-1.5 pointer-events-none">
+        <Badge variant="secondary" className="bg-black/60 backdrop-blur-md text-neutral-300 border border-white/10 text-[10px] py-0 px-1.5">
           {settings.resolution === 'native' ? 'Native' : settings.resolution} &bull; {settings.frameRate} FPS
         </Badge>
-        <Badge variant="secondary" className="bg-purple-950/60 backdrop-blur-md text-purple-300 border border-purple-500/30 text-xs uppercase font-semibold">
+        <Badge variant="secondary" className="bg-purple-950/60 backdrop-blur-md text-purple-300 border border-purple-500/30 text-[10px] py-0 px-1.5 uppercase font-semibold">
           {settings.format}
         </Badge>
       </div>

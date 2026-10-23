@@ -260,10 +260,10 @@ export function PreviewTrimmerModal({
   return (
     <>
       <Dialog open={open} onOpenChange={(o) => !o && !isTrimming && onClose()}>
-        <DialogContent className="max-w-3xl w-full p-4 sm:p-6 max-h-[92vh] overflow-y-auto flex flex-col gap-4">
+        <DialogContent className="max-w-3xl w-full p-3 sm:p-5 max-h-[92vh] overflow-y-auto flex flex-col gap-3">
           {/* Header */}
           <DialogHeader className="space-y-1">
-            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl font-bold">
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold">
               <FileVideo className="h-5 w-5 text-purple-500" />
               <span>Review & Export Recording</span>
             </DialogTitle>
@@ -273,19 +273,19 @@ export function PreviewTrimmerModal({
           </DialogHeader>
 
           {/* 1. Video Player Container - strictly above the trimmer */}
-          <div className="relative w-full rounded-xl overflow-hidden bg-black border border-border shadow-inner max-h-[44vh] flex items-center justify-center">
+          <div className="relative w-full rounded-xl overflow-hidden bg-black border border-border shadow-inner max-h-[36vh] flex items-center justify-center">
             <video
               ref={videoRef}
               src={item.url}
               controls
               playsInline
               onLoadedMetadata={handleLoadedMetadata}
-              className="w-full max-h-[44vh] object-contain"
+              className="w-full max-h-[36vh] object-contain"
             />
           </div>
 
           {/* 2. Unified Timeline Trimmer - strictly below the video */}
-          <div className="rounded-xl border bg-card/60 p-4 space-y-3 shadow-sm">
+          <div className="rounded-xl border bg-card/60 p-3 sm:p-4 space-y-2.5 shadow-sm">
             {/* Trimmer Title & Status Bar */}
             <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
               <div className="flex items-center gap-2 font-semibold">

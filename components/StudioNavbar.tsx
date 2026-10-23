@@ -47,24 +47,21 @@ export function StudioNavbar({
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-md">
-      <div className="container flex h-16 max-w-7xl items-center justify-between px-4 sm:px-8">
+      <div className="container flex h-14 max-w-7xl items-center justify-between px-3 sm:px-6">
         {/* Brand */}
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-pink-500 shadow-md shadow-purple-500/25">
-            <Video className="h-5 w-5 text-white" />
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-pink-500 shadow-md shadow-purple-500/25">
+            <Video className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-white" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold tracking-tight">
+              <span className="text-lg font-bold tracking-tight">
                 snap<span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">REC</span>
               </span>
-              <Badge variant="outline" className="hidden sm:inline-flex text-[10px] font-semibold tracking-wide uppercase px-1.5 py-0">
+              <Badge variant="outline" className="hidden sm:inline-flex text-[9px] font-semibold tracking-wide uppercase px-1 py-0">
                 Studio 2.0
               </Badge>
             </div>
-            <p className="text-[11px] text-muted-foreground hidden sm:block">
-              Client-Side Screen Studio &bull; Real MP4 Export
-            </p>
           </div>
         </div>
 

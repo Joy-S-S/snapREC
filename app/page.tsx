@@ -509,53 +509,57 @@ export default function StudioPage() {
         onOpenShortcuts={() => setShortcutsModalOpen(true)}
       />
 
-      {/* Main Studio Area */}
-      <main className="flex-1 container max-w-7xl px-4 sm:px-8 py-6 space-y-6">
-        {/* Recording Mode Selector */}
-        <StudioModeSelector
-          mode={settings.mode}
-          disabled={status !== 'idle'}
-          onChange={(newMode) => handleUpdateSettings({ mode: newMode })}
-        />
+      {/* Main Studio Area: Responsive 2-Column Grid on Laptops & Desktops */}
+      <main className="flex-1 container max-w-7xl px-3 sm:px-6 py-3 sm:py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-start">
+          {/* Left Column: Mode Selector + Stage + Controls */}
+          <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-3">
+            <StudioModeSelector
+              mode={settings.mode}
+              disabled={status !== 'idle'}
+              onChange={(newMode) => handleUpdateSettings({ mode: newMode })}
+            />
 
-        {/* Video Canvas Stage */}
-        <StudioCanvasStage
-          settings={settings}
-          status={status}
-          countdownNumber={countdownNumber}
-          elapsedSeconds={elapsedSeconds}
-          previewStream={previewStream}
-          camStream={camStream}
-          onPositionChange={(pos) => handleUpdateSettings({ camPosition: pos })}
-          onPauseToggle={handlePauseToggle}
-          onStop={handleStopRecording}
-          onStart={handleStartRecording}
-        />
+            <StudioCanvasStage
+              settings={settings}
+              status={status}
+              countdownNumber={countdownNumber}
+              elapsedSeconds={elapsedSeconds}
+              previewStream={previewStream}
+              camStream={camStream}
+              onPositionChange={(pos) => handleUpdateSettings({ camPosition: pos })}
+              onPauseToggle={handlePauseToggle}
+              onStop={handleStopRecording}
+              onStart={handleStartRecording}
+            />
 
-        {/* Core Controls HUD */}
-        <ControlsHUD
-          status={status}
-          settings={settings}
-          elapsedSeconds={elapsedSeconds}
-          micLevel={micLevel}
-          sysLevel={sysLevel}
-          onStart={handleStartRecording}
-          onPauseToggle={handlePauseToggle}
-          onStop={handleStopRecording}
-        />
+            <ControlsHUD
+              status={status}
+              settings={settings}
+              elapsedSeconds={elapsedSeconds}
+              micLevel={micLevel}
+              sysLevel={sysLevel}
+              onStart={handleStartRecording}
+              onPauseToggle={handlePauseToggle}
+              onStop={handleStopRecording}
+            />
+          </div>
 
-        {/* Studio Settings Panel */}
-        <SettingsPanel
-          settings={settings}
-          audioDevices={audioDevices}
-          videoDevices={videoDevices}
-          disabled={status !== 'idle'}
-          onUpdate={handleUpdateSettings}
-        />
+          {/* Right Column: Docked Settings Inspector */}
+          <div className="lg:col-span-5 xl:col-span-4 flex flex-col">
+            <SettingsPanel
+              settings={settings}
+              audioDevices={audioDevices}
+              videoDevices={videoDevices}
+              disabled={status !== 'idle'}
+              onUpdate={handleUpdateSettings}
+            />
+          </div>
+        </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t py-6 text-center text-xs text-muted-foreground">
+      <footer className="border-t py-3 text-center text-[11px] text-muted-foreground">
         <p>
           snapREC Studio &bull; 100% Client-Side &bull; Genuine MP4 &bull; Built for GitHub Pages
         </p>
