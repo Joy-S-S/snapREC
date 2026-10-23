@@ -96,3 +96,143 @@ export function downloadBlob(blob: Blob, filename: string) {
     URL.revokeObjectURL(url);
   }, 100);
 }
+
+export async function trimVideoClientSide(
+  videoBlob: Blob,
+  startTimeSec: number,
+  endTimeSec: number,
+  format: 'mp4' | 'webm',
+  onProgress?: (percent: number) => void
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    const objectUrl = URL.createObjectURL(videoBlob);
+    video.src = objectUrl;
+    video.muted = false;
+    video.volume = 1;
+    video.playsInline = true;
+    video.style.position = 'fixed';
+    video.style.top = '-9999px';
+    video.style.left = '-9999px';
+    video.style.width = '2px';
+    video.style.height = '2px';
+    video.style.opacity = '0.001';
+    video.style.pointerEvents = 'none';
+    document.body.appendChild(video);
+
+    // AudioContext route to avoid blasting user speakers during trim
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    let audioCtx: AudioContext | null = null;
+    let audioDest: MediaStreamAudioDestinationNode | null = null;
+    try {
+      audioCtx = new AudioContextClass();
+      const source = audioCtx.createMediaElementSource(video);
+      audioDest = audioCtx.createMediaStreamDestination();
+      source.connect(audioDest);
+    } catch (e) {
+      console.warn('Audio routing for trimmer warning:', e);
+    }
+
+    video.onloadedmetadata = () => {
+      video.currentTime = Math.max(0, startTimeSec);
+    };
+
+    video.onseeked = () => {
+      try {
+        const videoWithCapture = video as unknown as {
+          captureStream?: () => MediaStream;
+          mozCaptureStream?: () => MediaStream;
+        };
+        const stream =
+          typeof videoWithCapture.captureStream === 'function'
+            ? videoWithCapture.captureStream()
+            : videoWithCapture.mozCaptureStream?.();
+
+        if (!stream) {
+          throw new Error('captureStream is not supported in this browser');
+        }
+
+        const tracks: MediaStreamTrack[] = [...stream.getVideoTracks()];
+        if (audioDest && audioDest.stream.getAudioTracks().length > 0) {
+          tracks.push(audioDest.stream.getAudioTracks()[0]);
+        } else if (stream.getAudioTracks().length > 0) {
+          tracks.push(stream.getAudioTracks()[0]);
+        }
+
+        const combined = new MediaStream(tracks);
+        const { mimeType, isNativeMp4 } = getBestMimeType(format);
+        const recorder = new MediaRecorder(combined, mimeType ? { mimeType } : {});
+        const chunks: Blob[] = [];
+
+        recorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) chunks.push(e.data);
+        };
+
+        const targetDurationSec = Math.max(0.1, endTimeSec - startTimeSec);
+        const durationMs = targetDurationSec * 1000;
+
+        let finished = false;
+        const cleanup = () => {
+          if (finished) return;
+          finished = true;
+          video.pause();
+          if (video.parentNode) video.parentNode.removeChild(video);
+          URL.revokeObjectURL(objectUrl);
+          if (audioCtx && audioCtx.state !== 'closed') audioCtx.close();
+        };
+
+        recorder.onstop = async () => {
+          cleanup();
+          try {
+            const { blob } = await processRecordingBlob(chunks, durationMs, format, isNativeMp4);
+            resolve(blob);
+          } catch (err) {
+            reject(err);
+          }
+        };
+
+        video.playbackRate = 2.0;
+
+        const checkTimer = setInterval(() => {
+          if (!video.paused && !video.ended) {
+            const progress = Math.min(
+              99,
+              Math.round(((video.currentTime - startTimeSec) / targetDurationSec) * 100)
+            );
+            if (onProgress) onProgress(progress);
+          }
+
+          if (video.currentTime >= endTimeSec || video.ended) {
+            clearInterval(checkTimer);
+            if (onProgress) onProgress(100);
+            video.pause();
+            if (recorder.state !== 'inactive') {
+              recorder.stop();
+            }
+          }
+        }, 50);
+
+        recorder.start(100);
+        video.play().catch((err) => {
+          clearInterval(checkTimer);
+          cleanup();
+          reject(err);
+        });
+      } catch (err) {
+        video.pause();
+        if (video.parentNode) video.parentNode.removeChild(video);
+        URL.revokeObjectURL(objectUrl);
+        reject(err);
+      }
+    };
+
+    video.onerror = () => {
+      video.pause();
+      if (video.parentNode) video.parentNode.removeChild(video);
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Failed to load video for trimming'));
+    };
+  });
+}

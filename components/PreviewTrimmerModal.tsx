@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { toast } from 'sonner';
 import { RecordingItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,9 +37,10 @@ import {
   Play,
   Pause,
   RotateCcw,
-  Sparkles,
+  Loader2,
+  Check,
 } from 'lucide-react';
-import { downloadBlob } from '@/lib/mp4-engine';
+import { downloadBlob, trimVideoClientSide } from '@/lib/mp4-engine';
 
 interface PreviewTrimmerModalProps {
   item: RecordingItem | null;
@@ -60,6 +62,8 @@ export function PreviewTrimmerModal({
   const [duration, setDuration] = React.useState(0);
   const [trimRange, setTrimRange] = React.useState<[number, number]>([0, 100]);
   const [isPlayingTrim, setIsPlayingTrim] = React.useState(false);
+  const [isTrimming, setIsTrimming] = React.useState(false);
+  const [trimProgress, setTrimProgress] = React.useState(0);
   const [confirmDiscardOpen, setConfirmDiscardOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -68,6 +72,8 @@ export function PreviewTrimmerModal({
       setTrimRange([0, 100]);
       setDuration(item.duration || 1);
       setIsPlayingTrim(false);
+      setIsTrimming(false);
+      setTrimProgress(0);
     }
   }, [item]);
 
@@ -140,14 +146,107 @@ export function PreviewTrimmerModal({
     }
   };
 
+  // Explicitly Apply Trim to current video
+  const handleApplyTrim = async () => {
+    if (!isTrimmed || isTrimming) return;
+
+    try {
+      setIsTrimming(true);
+      setTrimProgress(0);
+      toast.info('Trimming video clip... Please wait');
+
+      const trimmedBlob = await trimVideoClientSide(
+        item.blob,
+        startTimeSec,
+        endTimeSec,
+        item.format,
+        (p) => setTrimProgress(p)
+      );
+
+      const newUrl = URL.createObjectURL(trimmedBlob);
+      const updatedItem: RecordingItem = {
+        ...item,
+        blob: trimmedBlob,
+        url: newUrl,
+        duration: exportDurationSec,
+        sizeBytes: trimmedBlob.size,
+      };
+
+      onSaveToLibrary(updatedItem);
+      setTrimRange([0, 100]);
+      setDuration(exportDurationSec);
+      if (videoRef.current) {
+        videoRef.current.src = newUrl;
+        videoRef.current.currentTime = 0;
+      }
+
+      toast.success(`Trim applied! Video shortened to ${formatTime(exportDurationSec)}.`);
+    } catch (err) {
+      console.error('Error applying trim:', err);
+      toast.error('Failed to trim video.');
+    } finally {
+      setIsTrimming(false);
+      setTrimProgress(0);
+    }
+  };
+
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  const handleDownload = (format: 'mp4' | 'webm') => {
+  const handleDownload = async (format: 'mp4' | 'webm') => {
+    if (isTrimming) return;
     const filename = `${name.trim().replace(/\s+/g, '_') || 'recording'}.${format}`;
-    downloadBlob(item.blob, filename);
+
+    // 1. If not trimmed, download original blob directly
+    if (!isTrimmed) {
+      downloadBlob(item.blob, filename);
+      toast.success(`Downloaded ${filename}`);
+      return;
+    }
+
+    // 2. If trimmed, process the trim and download the result
+    try {
+      setIsTrimming(true);
+      setTrimProgress(0);
+      toast.info('Trimming video before download... Please wait');
+
+      const trimmedBlob = await trimVideoClientSide(
+        item.blob,
+        startTimeSec,
+        endTimeSec,
+        format,
+        (p) => setTrimProgress(p)
+      );
+
+      downloadBlob(trimmedBlob, filename);
+      toast.success(`Trim complete! Downloaded ${filename}`);
+
+      // Update current item so the player reflects the trimmed video
+      const newUrl = URL.createObjectURL(trimmedBlob);
+      const updatedItem: RecordingItem = {
+        ...item,
+        blob: trimmedBlob,
+        url: newUrl,
+        duration: exportDurationSec,
+        sizeBytes: trimmedBlob.size,
+      };
+
+      onSaveToLibrary(updatedItem);
+      setTrimRange([0, 100]);
+      setDuration(exportDurationSec);
+      if (videoRef.current) {
+        videoRef.current.src = newUrl;
+        videoRef.current.currentTime = 0;
+      }
+    } catch (err) {
+      console.error('Error trimming video:', err);
+      toast.error('Failed to trim video clip.');
+    } finally {
+      setIsTrimming(false);
+      setTrimProgress(0);
+    }
   };
 
   const handleSaveAndClose = () => {
@@ -160,7 +259,7 @@ export function PreviewTrimmerModal({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <Dialog open={open} onOpenChange={(o) => !o && !isTrimming && onClose()}>
         <DialogContent className="max-w-3xl w-full p-4 sm:p-6 max-h-[92vh] overflow-y-auto flex flex-col gap-4">
           {/* Header */}
           <DialogHeader className="space-y-1">
@@ -193,8 +292,13 @@ export function PreviewTrimmerModal({
                 <Scissors className="h-4 w-4 text-purple-500" />
                 <span className="text-sm font-bold text-foreground">Video Trimmer</span>
                 {isTrimmed && (
-                  <Badge variant="secondary" className="bg-purple-500/20 text-purple-600 dark:text-purple-300 text-[10px] py-0 px-2">
+                  <Badge variant="secondary" className="bg-purple-500/20 text-purple-600 dark:text-purple-300 text-[10px] py-0 px-2 font-bold">
                     Trim Active
+                  </Badge>
+                )}
+                {isTrimming && (
+                  <Badge variant="secondary" className="bg-amber-500/20 text-amber-500 text-[10px] py-0 px-2 font-bold animate-pulse">
+                    Processing {trimProgress}%
                   </Badge>
                 )}
               </div>
@@ -219,6 +323,7 @@ export function PreviewTrimmerModal({
                 max={100}
                 step={0.1}
                 minStepsBetweenThumbs={1}
+                disabled={isTrimming}
                 onValueChange={handleRangeChange}
                 className="relative flex w-full touch-none select-none items-center py-2"
               >
@@ -257,11 +362,12 @@ export function PreviewTrimmerModal({
                 </span>
               </div>
 
-              {/* Center controls: Preview & Reset */}
+              {/* Center controls: Preview, Apply & Reset */}
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
+                  disabled={isTrimming}
                   onClick={togglePlayTrimmed}
                   className="h-7 px-2.5 text-xs gap-1.5 font-medium"
                 >
@@ -279,6 +385,28 @@ export function PreviewTrimmerModal({
                 </Button>
 
                 {isTrimmed && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={isTrimming}
+                    onClick={handleApplyTrim}
+                    className="h-7 px-2.5 text-xs gap-1 bg-purple-500/15 hover:bg-purple-500/25 text-purple-600 dark:text-purple-300 font-semibold border border-purple-500/30"
+                  >
+                    {isTrimming ? (
+                      <>
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <span>Trimming...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Check className="h-3 w-3" />
+                        <span>Apply Trim</span>
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {isTrimmed && !isTrimming && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -309,6 +437,7 @@ export function PreviewTrimmerModal({
               <Label className="text-xs font-semibold">Recording Title</Label>
               <Input
                 value={name}
+                disabled={isTrimming}
                 onChange={(e) => setName(e.target.value)}
                 className="h-9 text-xs"
                 placeholder="My recording title"
@@ -335,6 +464,7 @@ export function PreviewTrimmerModal({
             <Button
               variant="destructive"
               size="sm"
+              disabled={isTrimming}
               onClick={() => setConfirmDiscardOpen(true)}
               className="gap-1.5 h-9"
             >
@@ -346,6 +476,7 @@ export function PreviewTrimmerModal({
               <Button
                 variant="outline"
                 size="sm"
+                disabled={isTrimming}
                 onClick={handleSaveAndClose}
                 className="gap-1.5 h-9"
               >
@@ -356,20 +487,30 @@ export function PreviewTrimmerModal({
               <Button
                 variant="secondary"
                 size="sm"
+                disabled={isTrimming}
                 onClick={() => handleDownload('webm')}
                 className="gap-1.5 h-9 text-xs font-semibold"
               >
-                <Download className="h-4 w-4" />
-                <span>Download .webm</span>
+                {isTrimming ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                <span>{isTrimming ? `Trimming (${trimProgress}%)...` : 'Download .webm'}</span>
               </Button>
 
               <Button
                 size="sm"
+                disabled={isTrimming}
                 onClick={() => handleDownload('mp4')}
                 className="gap-1.5 h-9 text-xs font-bold text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 shadow-md shadow-purple-500/25"
               >
-                <Download className="h-4 w-4" />
-                <span>Download MP4</span>
+                {isTrimming ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                <span>{isTrimming ? `Trimming (${trimProgress}%)...` : 'Download MP4'}</span>
               </Button>
             </div>
           </DialogFooter>
