@@ -31,8 +31,8 @@ export default function StudioPage() {
     bitrateMbps: 8,
     micEnabled: true,
     sysAudioEnabled: true,
-    micDeviceId: '',
-    camDeviceId: '',
+    micDeviceId: 'default-mic',
+    camDeviceId: 'default-cam',
     micVolume: 1.0,
     sysVolume: 1.0,
     camShape: 'circle',
@@ -85,20 +85,32 @@ export default function StudioPage() {
       const devices = await navigator.mediaDevices.enumerateDevices();
       const mics = devices
         .filter((d) => d.kind === 'audioinput')
-        .map((d, idx) => ({ deviceId: d.deviceId, label: d.label || `Microphone ${idx + 1}` }));
+        .map((d, idx) => ({
+          deviceId: d.deviceId || `mic-${idx + 1}`,
+          label: d.label || `Microphone ${idx + 1}`,
+        }));
       const cams = devices
         .filter((d) => d.kind === 'videoinput')
-        .map((d, idx) => ({ deviceId: d.deviceId, label: d.label || `Camera ${idx + 1}` }));
+        .map((d, idx) => ({
+          deviceId: d.deviceId || `cam-${idx + 1}`,
+          label: d.label || `Camera ${idx + 1}`,
+        }));
+
+      if (mics.length === 0) {
+        mics.push({ deviceId: 'default-mic', label: 'Default Microphone' });
+      }
+      if (cams.length === 0) {
+        cams.push({ deviceId: 'default-cam', label: 'Default Camera' });
+      }
 
       setAudioDevices(mics);
       setVideoDevices(cams);
 
-      if (mics.length > 0 && !settings.micDeviceId) {
-        setSettings((prev) => ({ ...prev, micDeviceId: mics[0].deviceId }));
-      }
-      if (cams.length > 0 && !settings.camDeviceId) {
-        setSettings((prev) => ({ ...prev, camDeviceId: cams[0].deviceId }));
-      }
+      setSettings((prev) => ({
+        ...prev,
+        micDeviceId: prev.micDeviceId && prev.micDeviceId !== 'default-mic' ? prev.micDeviceId : mics[0].deviceId,
+        camDeviceId: prev.camDeviceId && prev.camDeviceId !== 'default-cam' ? prev.camDeviceId : cams[0].deviceId,
+      }));
     } catch (e) {
       console.warn('Device enumeration error:', e);
     }
@@ -265,10 +277,9 @@ export default function StudioPage() {
       let camStream: MediaStream | null = null;
       if (settings.mode === 'screen_cam' || settings.mode === 'cam_only') {
         try {
+          const isSpecificCam = settings.camDeviceId && !settings.camDeviceId.startsWith('default') && !settings.camDeviceId.startsWith('cam-');
           camStream = await navigator.mediaDevices.getUserMedia({
-            video: settings.camDeviceId
-              ? { deviceId: { exact: settings.camDeviceId } }
-              : true,
+            video: isSpecificCam ? { deviceId: { exact: settings.camDeviceId } } : true,
           });
           camStreamRef.current = camStream;
           setCamStream(camStream);
@@ -285,10 +296,9 @@ export default function StudioPage() {
       let micStream: MediaStream | null = null;
       if (settings.micEnabled) {
         try {
+          const isSpecificMic = settings.micDeviceId && !settings.micDeviceId.startsWith('default') && !settings.micDeviceId.startsWith('mic-');
           micStream = await navigator.mediaDevices.getUserMedia({
-            audio: settings.micDeviceId
-              ? { deviceId: { exact: settings.micDeviceId } }
-              : true,
+            audio: isSpecificMic ? { deviceId: { exact: settings.micDeviceId } } : true,
           });
           micStreamRef.current = micStream;
         } catch (e) {

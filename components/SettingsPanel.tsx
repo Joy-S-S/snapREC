@@ -187,19 +187,23 @@ export function SettingsPanel({
                   <div className="space-y-1.5">
                     <Label className="text-[11px] text-muted-foreground">Input Microphone Device</Label>
                     <Select
-                      value={settings.micDeviceId || (audioDevices[0]?.deviceId ?? 'default')}
-                      disabled={disabled || audioDevices.length === 0}
+                      value={settings.micDeviceId || audioDevices[0]?.deviceId || 'default-mic'}
+                      disabled={disabled}
                       onValueChange={(val) => onUpdate({ micDeviceId: val })}
                     >
                       <SelectTrigger className="h-9 text-xs">
                         <SelectValue placeholder="Select microphone" />
                       </SelectTrigger>
                       <SelectContent>
-                        {audioDevices.map((dev) => (
-                          <SelectItem key={dev.deviceId} value={dev.deviceId}>
-                            {dev.label || `Microphone ${dev.deviceId.slice(0, 5)}`}
-                          </SelectItem>
-                        ))}
+                        {audioDevices.length > 0 ? (
+                          audioDevices.map((dev, idx) => (
+                            <SelectItem key={dev.deviceId || idx} value={dev.deviceId || `mic-${idx + 1}`}>
+                              {dev.label || `Microphone ${idx + 1}`}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="default-mic">System Default Microphone</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -262,19 +266,23 @@ export function SettingsPanel({
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">Camera Device</Label>
                 <Select
-                  value={settings.camDeviceId || (videoDevices[0]?.deviceId ?? 'default')}
-                  disabled={disabled || videoDevices.length === 0}
+                  value={settings.camDeviceId || videoDevices[0]?.deviceId || 'default-cam'}
+                  disabled={disabled}
                   onValueChange={(val) => onUpdate({ camDeviceId: val })}
                 >
                   <SelectTrigger className="h-9 text-xs">
                     <SelectValue placeholder="Select camera" />
                   </SelectTrigger>
                   <SelectContent>
-                    {videoDevices.map((dev) => (
-                      <SelectItem key={dev.deviceId} value={dev.deviceId}>
-                        {dev.label || `Camera ${dev.deviceId.slice(0, 5)}`}
-                      </SelectItem>
-                    ))}
+                    {videoDevices.length > 0 ? (
+                      videoDevices.map((dev, idx) => (
+                        <SelectItem key={dev.deviceId || idx} value={dev.deviceId || `cam-${idx + 1}`}>
+                          {dev.label || `Camera ${idx + 1}`}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="default-cam">System Default Camera</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
