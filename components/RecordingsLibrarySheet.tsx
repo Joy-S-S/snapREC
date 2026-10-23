@@ -74,7 +74,7 @@ export function RecordingsLibrarySheet({
             )}
           </div>
           <SheetDescription className="text-xs">
-            Review and download recordings from this active session.
+            Recordings from your current session.
           </SheetDescription>
         </SheetHeader>
 

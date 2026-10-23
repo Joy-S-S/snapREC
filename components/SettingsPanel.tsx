@@ -75,7 +75,7 @@ export function SettingsPanel({
 
           {/* 1. VIDEO SETTINGS */}
           <TabsContent value="video" className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2 gap-3">
+            <div className="space-y-3">
               {/* Resolution */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">Output Resolution</Label>
@@ -120,7 +120,7 @@ export function SettingsPanel({
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium flex items-center justify-between">
                   <span>Container Format</span>
-                  <span className="text-[10px] text-indigo-600 font-semibold">Real MP4</span>
+                  <span className="text-[10px] text-muted-foreground font-mono">H.264 / AAC</span>
                 </Label>
                 <Select
                   value={settings.format}
@@ -158,11 +158,9 @@ export function SettingsPanel({
               </div>
             </div>
 
-            <div className="rounded-lg border bg-muted/40 p-3 flex items-start gap-2.5 text-xs text-muted-foreground">
-              <Info className="h-4 w-4 text-indigo-600 shrink-0 mt-0.5" />
-              <p>
-                MP4 output uses direct hardware-accelerated H.264 client-side encoding. Recordings play natively on Windows, macOS, QuickTime, iOS, Android, and PowerPoint without server conversion.
-              </p>
+            <div className="rounded-lg border border-border/80 bg-muted/30 p-2.5 flex items-center gap-2 text-xs text-muted-foreground">
+              <Info className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+              <span>MP4 files are universally compatible with QuickTime, Windows, and mobile devices.</span>
             </div>
           </TabsContent>
 
@@ -261,7 +259,7 @@ export function SettingsPanel({
 
           {/* 3. WEBCAM SETTINGS */}
           <TabsContent value="webcam" className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2 gap-3">
+            <div className="space-y-3">
               {/* Camera Device */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">Camera Device</Label>
@@ -361,7 +359,7 @@ export function SettingsPanel({
 
           {/* 4. GENERAL SETTINGS */}
           <TabsContent value="general" className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2 gap-3">
+            <div className="space-y-3">
               {/* Project Filename */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">Default Filename</Label>

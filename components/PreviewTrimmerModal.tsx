@@ -265,10 +265,10 @@ export function PreviewTrimmerModal({
           <DialogHeader className="space-y-1">
             <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold">
               <FileVideo className="h-5 w-5 text-indigo-600" />
-              <span>Review & Export Recording</span>
+              <span>Review Recording</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              Preview your recording, trim unwanted parts from the beginning and end, and export in genuine MP4.
+              Play back your recording, trim the timeline, or download your file.
             </DialogDescription>
           </DialogHeader>
 

@@ -7,8 +7,8 @@ import { Toaster } from '@/components/ui/sonner';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'snapREC — Modern Screen Studio & MP4 Recorder',
-  description: 'Free, private, client-side screen recorder with genuine MP4 export. No server, no domain required, 100% static on GitHub Pages.',
+  title: 'snapREC — Screen Studio & Video Recorder',
+  description: 'Record screen, webcam, and microphone directly in your browser. Fast, private, watermark-free MP4 export.',
   icons: {
     icon: '/favicon.ico',
     apple: '/icon-192.png',

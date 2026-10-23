@@ -35,7 +35,7 @@ export function KeyboardShortcutsDialog({
             <span>Keyboard Shortcuts</span>
           </DialogTitle>
           <DialogDescription className="text-xs">
-            Control your recording studio without taking your hands off the keyboard.
+            Quickly control recordings with keyboard shortcuts.
           </DialogDescription>
         </DialogHeader>
 

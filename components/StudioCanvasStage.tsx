@@ -129,14 +129,14 @@ export function StudioCanvasStage({
               <Monitor className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-400" />
             </div>
 
-            <h3 className="text-base sm:text-lg font-bold tracking-tight text-white mb-1">
-              Studio Stage Ready
+            <h3 className="text-base sm:text-lg font-semibold tracking-tight text-white mb-1">
+              Ready to record
             </h3>
             <p className="text-xs text-neutral-400 mb-3 sm:mb-4 leading-relaxed line-clamp-2">
-              {settings.mode === 'screen_cam' && 'Record screen with customized webcam overlay.'}
-              {settings.mode === 'screen_only' && 'Select your screen, application window, or browser tab.'}
-              {settings.mode === 'cam_only' && 'Webcam will be recorded in full-frame.'}
-              {settings.mode === 'audio_only' && 'Capture voice and system sound.'}
+              {settings.mode === 'screen_cam' && 'Capture screen and webcam together.'}
+              {settings.mode === 'screen_only' && 'Select a window, screen, or tab to capture.'}
+              {settings.mode === 'cam_only' && 'Capture full-frame webcam video.'}
+              {settings.mode === 'audio_only' && 'Record microphone and system audio.'}
             </p>
 
             <Button

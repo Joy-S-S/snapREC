@@ -440,8 +440,8 @@ export default function StudioPage() {
       setElapsedSeconds(0);
       toast.success(
         isNativeMp4 && settings.format === 'mp4'
-          ? 'Recording in native hardware-accelerated MP4'
-          : `Recording in ${settings.format.toUpperCase()}`
+          ? 'Recording started (MP4)'
+          : `Recording started (${settings.format.toUpperCase()})`
       );
 
       // Start timers and VU meters
@@ -559,10 +559,8 @@ export default function StudioPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t py-3 text-center text-[11px] text-muted-foreground">
-        <p>
-          snapREC Studio &bull; 100% Client-Side &bull; Genuine MP4 &bull; Built for GitHub Pages
-        </p>
+      <footer className="border-t py-4 text-center text-xs text-muted-foreground">
+        <p>&copy; {new Date().getFullYear()} snapREC. All video recording and processing stays in your browser.</p>
       </footer>
 
       {/* Post-Recording Trimmer & Review Modal */}

@@ -58,9 +58,6 @@ export function StudioNavbar({
               <span className="text-lg font-bold tracking-tight text-foreground">
                 snap<span className="text-indigo-600 font-extrabold">REC</span>
               </span>
-              <Badge variant="outline" className="hidden sm:inline-flex text-[9px] font-semibold tracking-wide uppercase px-1.5 py-0 border-slate-200 dark:border-slate-800">
-                Studio 2.0
-              </Badge>
             </div>
           </div>
         </div>
@@ -86,7 +83,7 @@ export function StudioNavbar({
           {status === 'idle' && (
             <div className="hidden md:flex items-center gap-1.5 rounded-full border px-3 py-0.5 text-xs text-muted-foreground">
               <Circle className="h-2 w-2 fill-emerald-500 text-emerald-500" />
-              <span>Studio Ready</span>
+              <span>Ready</span>
             </div>
           )}
         </div>
