@@ -64,7 +64,7 @@ export function StudioModeSelector({ mode, onChange, disabled }: StudioModeSelec
             >
               <Icon className="h-3.5 w-3.5" />
             </div>
-            <span className="text-xs font-medium leading-tight truncate">{item.label}</span>
+            <span className="text-xs sm:text-sm font-medium leading-tight whitespace-nowrap">{item.label}</span>
           </button>
         );
       })}

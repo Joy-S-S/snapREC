@@ -260,7 +260,7 @@ export function PreviewTrimmerModal({
   return (
     <>
       <Dialog open={open} onOpenChange={(o) => !o && !isTrimming && onClose()}>
-        <DialogContent className="max-w-3xl w-full p-4 sm:p-5 max-h-[92vh] overflow-y-auto flex flex-col gap-3.5 border-slate-200 dark:border-slate-800 shadow-2xl">
+        <DialogContent className="max-w-3xl lg:max-w-4xl w-full p-4 sm:p-5 max-h-[92vh] overflow-y-auto flex flex-col gap-3.5 border-slate-200 dark:border-slate-800 shadow-2xl">
           {/* Header */}
           <DialogHeader className="space-y-1">
             <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold">

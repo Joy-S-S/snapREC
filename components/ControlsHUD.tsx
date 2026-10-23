@@ -48,10 +48,10 @@ export function ControlsHUD({
   const isActive = isRecording || isPaused;
 
   return (
-    <Card className="p-3 sm:p-3.5 border-border/70 shadow-md bg-card/90 backdrop-blur-md">
+    <Card className="p-3 sm:p-4 border-border/80 shadow-sm bg-card">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         {/* Left: Timer & Audio VU Meters */}
-        <div className="flex items-center gap-4 sm:gap-5 w-full sm:w-auto justify-between sm:justify-start">
+        <div className="flex items-center gap-4 sm:gap-6 w-full sm:w-auto justify-between sm:justify-start">
           {/* Digital Timer */}
           <div>
             <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block">
@@ -63,7 +63,7 @@ export function ControlsHUD({
           </div>
 
           {/* Audio VU Meters */}
-          <div className="flex flex-col gap-1.5 min-w-[120px] sm:min-w-[140px]">
+          <div className="flex flex-col gap-1.5 min-w-[120px] sm:min-w-[160px] lg:min-w-[180px]">
             {/* Mic Meter */}
             <div className="flex items-center gap-1.5">
               <Mic

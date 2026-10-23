@@ -106,7 +106,7 @@ export function StudioCanvasStage({
   ];
 
   return (
-    <div className="relative aspect-video w-full max-h-[46vh] sm:max-h-[42vh] lg:max-h-[48vh] overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-br from-neutral-900 to-black shadow-xl flex items-center justify-center">
+    <div className="relative aspect-video w-full max-h-[56vh] sm:max-h-[52vh] lg:max-h-[58vh] overflow-hidden rounded-2xl border border-border/80 bg-slate-950 shadow-md flex items-center justify-center">
       {/* 1. Live Screen Video if available */}
       {previewStream && (
         <video

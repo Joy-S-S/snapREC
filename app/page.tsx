@@ -510,10 +510,10 @@ export default function StudioPage() {
       />
 
       {/* Main Studio Area: Responsive 2-Column Grid on Laptops & Desktops */}
-      <main className="flex-1 container max-w-7xl px-3 sm:px-6 py-3 sm:py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-start">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-5">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 lg:gap-5 items-start">
           {/* Left Column: Mode Selector + Stage + Controls */}
-          <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-3">
+          <div className="lg:col-span-7 xl:col-span-8 2xl:col-span-8 flex flex-col gap-3 sm:gap-3.5">
             <StudioModeSelector
               mode={settings.mode}
               disabled={status !== 'idle'}
@@ -546,7 +546,7 @@ export default function StudioPage() {
           </div>
 
           {/* Right Column: Docked Settings Inspector */}
-          <div className="lg:col-span-5 xl:col-span-4 flex flex-col">
+          <div className="lg:col-span-5 xl:col-span-4 2xl:col-span-4 flex flex-col">
             <SettingsPanel
               settings={settings}
               audioDevices={audioDevices}

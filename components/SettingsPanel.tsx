@@ -75,7 +75,7 @@ export function SettingsPanel({
 
           {/* 1. VIDEO SETTINGS */}
           <TabsContent value="video" className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2 gap-3">
               {/* Resolution */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">Output Resolution</Label>
@@ -261,7 +261,7 @@ export function SettingsPanel({
 
           {/* 3. WEBCAM SETTINGS */}
           <TabsContent value="webcam" className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2 gap-3">
               {/* Camera Device */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">Camera Device</Label>
@@ -361,7 +361,7 @@ export function SettingsPanel({
 
           {/* 4. GENERAL SETTINGS */}
           <TabsContent value="general" className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2 gap-3">
               {/* Project Filename */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">Default Filename</Label>
