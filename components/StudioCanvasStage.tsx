@@ -3,7 +3,6 @@
 import * as React from 'react';
 import { StudioSettings, RecordingStatus } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Monitor,
   Video,
@@ -149,38 +148,37 @@ export function StudioCanvasStage({
               Start Recording
             </Button>
           </div>
-
-          {/* Interactive corner target pins when Screen + Cam is selected */}
-          {settings.mode === 'screen_cam' && (
-            <div className="absolute inset-0 p-3 pointer-events-none">
-              {corners.map((corner) => {
-                const isActive = settings.camPosition === corner;
-                return (
-                  <button
-                    key={corner}
-                    type="button"
-                    onClick={() => onPositionChange(corner)}
-                    className={cn(
-                      'pointer-events-auto absolute p-1 sm:p-1.5 rounded-md border text-[10px] font-medium transition-all',
-                      isActive
-                        ? 'border-purple-500 bg-purple-500/30 text-white shadow-sm shadow-purple-500/30'
-                        : 'border-white/10 bg-black/40 text-neutral-400 hover:text-white hover:border-white/30',
-                      corner === 'top-left' && 'top-2.5 left-2.5',
-                      corner === 'top-right' && 'top-2.5 right-2.5',
-                      corner === 'bottom-left' && 'bottom-2.5 left-2.5',
-                      corner === 'bottom-right' && 'bottom-2.5 right-2.5'
-                    )}
-                  >
-                    {corner.replace('-', ' ')}
-                  </button>
-                );
-              })}
-            </div>
-          )}
         </div>
       )}
 
-      {/* 3. Camera Overlay in Screen+Cam mode */}
+      {/* 3. Interactive corner target pins when Screen + Cam is selected */}
+      {settings.mode === 'screen_cam' && status !== 'countdown' && (
+        <div className="absolute inset-0 p-3 pointer-events-none z-30">
+          {corners.map((corner) => {
+            if (settings.camPosition === corner) return null;
+            return (
+              <button
+                key={corner}
+                type="button"
+                onClick={() => onPositionChange(corner)}
+                className={cn(
+                  'pointer-events-auto absolute px-2.5 py-1 rounded-lg border text-[11px] font-medium transition-all duration-200 capitalize backdrop-blur-md shadow-md select-none',
+                  'border-white/20 bg-black/60 text-neutral-300 hover:text-white hover:border-purple-500 hover:bg-purple-950/50 hover:shadow-purple-500/20 active:scale-95',
+                  corner === 'top-left' && 'top-3 left-3',
+                  corner === 'top-right' && 'top-3 right-3',
+                  corner === 'bottom-left' && 'bottom-3 left-3',
+                  corner === 'bottom-right' && 'bottom-3 right-3'
+                )}
+                title={`Move camera to ${corner.replace('-', ' ')}`}
+              >
+                {corner.replace('-', ' ')}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* 4. Camera Overlay in Screen+Cam mode */}
       {settings.mode === 'screen_cam' && (
         <div
           className={cn(
@@ -210,7 +208,7 @@ export function StudioCanvasStage({
         </div>
       )}
 
-      {/* 4. Fullscreen Countdown Overlay */}
+      {/* 5. Fullscreen Countdown Overlay */}
       {status === 'countdown' && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
           <div className="flex flex-col items-center">
@@ -224,7 +222,7 @@ export function StudioCanvasStage({
         </div>
       )}
 
-      {/* 5. In-Stage Floating Recording Bar when Recording */}
+      {/* 6. In-Stage Floating Recording Bar when Recording */}
       {(status === 'recording' || status === 'paused') && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 rounded-full border border-white/15 bg-black/80 px-3.5 py-1.5 backdrop-blur-lg shadow-xl">
           <div className="flex items-center gap-1.5 pr-2 border-r border-white/10">
@@ -260,16 +258,6 @@ export function StudioCanvasStage({
           </Button>
         </div>
       )}
-
-      {/* Top right badges */}
-      <div className="absolute top-3 right-3 z-10 hidden sm:flex items-center gap-1.5 pointer-events-none">
-        <Badge variant="secondary" className="bg-black/60 backdrop-blur-md text-neutral-300 border border-white/10 text-[10px] py-0 px-1.5">
-          {settings.resolution === 'native' ? 'Native' : settings.resolution} &bull; {settings.frameRate} FPS
-        </Badge>
-        <Badge variant="secondary" className="bg-purple-950/60 backdrop-blur-md text-purple-300 border border-purple-500/30 text-[10px] py-0 px-1.5 uppercase font-semibold">
-          {settings.format}
-        </Badge>
-      </div>
     </div>
   );
 }
