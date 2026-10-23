@@ -193,7 +193,8 @@ export async function trimVideoClientSide(
           }
         };
 
-        video.playbackRate = 2.0;
+        // Playback must be 1.0x so MediaRecorder timestamps match real-time 1.0x speed exactly
+        video.playbackRate = 1.0;
 
         const checkTimer = setInterval(() => {
           if (!video.paused && !video.ended) {
