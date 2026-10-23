@@ -24,7 +24,7 @@ import { KeyboardShortcutsDialog } from '@/components/KeyboardShortcutsDialog';
 export default function StudioPage() {
   // Studio Settings State
   const [settings, setSettings] = React.useState<StudioSettings>({
-    mode: 'screen_cam',
+    mode: 'screen_only',
     resolution: '1920x1080',
     frameRate: 60,
     format: 'mp4',

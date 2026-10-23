@@ -16,6 +16,8 @@ export class CanvasCompositor {
   private screenVideo: HTMLVideoElement | null = null;
   private camVideo: HTMLVideoElement | null = null;
   private animFrameId: number | null = null;
+  private worker: Worker | null = null;
+  private workerUrl: string | null = null;
   private options: CanvasCompositorOptions;
   private active = false;
 
@@ -42,10 +44,19 @@ export class CanvasCompositor {
   start(screenStream: MediaStream, camStream?: MediaStream | null): MediaStreamTrack {
     this.active = true;
 
-    // Create and attach screen video
+    // Create and attach screen video off-screen in DOM to prevent browser decoding throttle
     this.screenVideo = document.createElement('video');
     this.screenVideo.muted = true;
     this.screenVideo.playsInline = true;
+    this.screenVideo.autoplay = true;
+    this.screenVideo.style.position = 'fixed';
+    this.screenVideo.style.top = '-9999px';
+    this.screenVideo.style.left = '-9999px';
+    this.screenVideo.style.width = '2px';
+    this.screenVideo.style.height = '2px';
+    this.screenVideo.style.opacity = '0.001';
+    this.screenVideo.style.pointerEvents = 'none';
+    document.body.appendChild(this.screenVideo);
     this.screenVideo.srcObject = screenStream;
     this.screenVideo.play().catch(console.error);
 
@@ -54,6 +65,15 @@ export class CanvasCompositor {
       this.camVideo = document.createElement('video');
       this.camVideo.muted = true;
       this.camVideo.playsInline = true;
+      this.camVideo.autoplay = true;
+      this.camVideo.style.position = 'fixed';
+      this.camVideo.style.top = '-9999px';
+      this.camVideo.style.left = '-9999px';
+      this.camVideo.style.width = '2px';
+      this.camVideo.style.height = '2px';
+      this.camVideo.style.opacity = '0.001';
+      this.camVideo.style.pointerEvents = 'none';
+      document.body.appendChild(this.camVideo);
       this.camVideo.srcObject = camStream;
       this.camVideo.play().catch(console.error);
     }
@@ -68,9 +88,47 @@ export class CanvasCompositor {
       }
     };
 
+    // 1. Web Worker clock: immune to tab switching and background throttling!
+    try {
+      const workerScript = `
+        var timer = null;
+        self.onmessage = function(e) {
+          if (e.data.action === 'start') {
+            var interval = Math.max(10, Math.floor(1000 / (e.data.fps || 60)));
+            if (timer) clearInterval(timer);
+            timer = setInterval(function() {
+              self.postMessage('tick');
+            }, interval);
+          } else if (e.data.action === 'stop') {
+            if (timer) clearInterval(timer);
+            timer = null;
+          }
+        };
+      `;
+      const blob = new Blob([workerScript], { type: 'application/javascript' });
+      this.workerUrl = URL.createObjectURL(blob);
+      this.worker = new Worker(this.workerUrl);
+
+      this.worker.onmessage = () => {
+        if (!this.active) return;
+        // When tab is hidden/backgrounded, requestAnimationFrame freezes completely.
+        // The worker tick guarantees frames continue drawing without lagging!
+        if (document.hidden) {
+          this.draw();
+        }
+      };
+
+      this.worker.postMessage({ action: 'start', fps: this.options.frameRate });
+    } catch (e) {
+      console.warn('Web Worker timer initialization warning:', e);
+    }
+
+    // 2. requestAnimationFrame clock for smooth v-synced rendering when tab is visible
     const render = () => {
       if (!this.active) return;
-      this.draw();
+      if (!document.hidden) {
+        this.draw();
+      }
       this.animFrameId = requestAnimationFrame(render);
     };
 
@@ -208,18 +266,37 @@ export class CanvasCompositor {
 
   stop() {
     this.active = false;
+
+    if (this.worker) {
+      this.worker.postMessage({ action: 'stop' });
+      this.worker.terminate();
+      this.worker = null;
+    }
+    if (this.workerUrl) {
+      URL.revokeObjectURL(this.workerUrl);
+      this.workerUrl = null;
+    }
+
     if (this.animFrameId !== null) {
       cancelAnimationFrame(this.animFrameId);
       this.animFrameId = null;
     }
+
     if (this.screenVideo) {
       this.screenVideo.pause();
       this.screenVideo.srcObject = null;
+      if (this.screenVideo.parentNode) {
+        this.screenVideo.parentNode.removeChild(this.screenVideo);
+      }
       this.screenVideo = null;
     }
+
     if (this.camVideo) {
       this.camVideo.pause();
       this.camVideo.srcObject = null;
+      if (this.camVideo.parentNode) {
+        this.camVideo.parentNode.removeChild(this.camVideo);
+      }
       this.camVideo = null;
     }
   }
