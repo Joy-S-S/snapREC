@@ -31,7 +31,7 @@ export function KeyboardShortcutsDialog({
       <DialogContent className="max-w-md p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base font-bold">
-            <Keyboard className="h-5 w-5 text-purple-500" />
+            <Keyboard className="h-5 w-5 text-indigo-600" />
             <span>Keyboard Shortcuts</span>
           </DialogTitle>
           <DialogDescription className="text-xs">

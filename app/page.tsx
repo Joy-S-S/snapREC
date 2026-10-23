@@ -499,7 +499,7 @@ export default function StudioPage() {
   }, [status, handleStopRecording, handlePauseToggle, cleanupRecordingStreams]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background selection:bg-purple-500/30">
+    <div className="min-h-screen flex flex-col bg-background selection:bg-indigo-500/20">
       {/* Top Navigation */}
       <StudioNavbar
         status={status}

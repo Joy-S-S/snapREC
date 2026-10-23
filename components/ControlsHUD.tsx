@@ -69,7 +69,7 @@ export function ControlsHUD({
               <Mic
                 className={cn(
                   'h-3 w-3 shrink-0 transition-colors',
-                  settings.micEnabled ? 'text-purple-500' : 'text-muted-foreground opacity-30'
+                  settings.micEnabled ? 'text-indigo-600' : 'text-muted-foreground opacity-30'
                 )}
               />
               <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden flex">
@@ -104,7 +104,7 @@ export function ControlsHUD({
             <Button
               size="default"
               onClick={onStart}
-              className="gap-2 rounded-full px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold tracking-wide shadow-md shadow-purple-500/25 bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-500 hover:from-purple-500 hover:to-pink-500 text-white border-0 transition-transform hover:scale-105 active:scale-95"
+              className="gap-2 rounded-full px-6 py-2.5 text-xs sm:text-sm font-semibold tracking-wide shadow-sm bg-indigo-600 hover:bg-indigo-700 text-white border-0 transition-all hover:scale-105 active:scale-95"
             >
               <Circle className="h-2.5 w-2.5 fill-current animate-ping" />
               <span>Record Screen</span>

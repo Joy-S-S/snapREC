@@ -50,15 +50,15 @@ export function StudioNavbar({
       <div className="container flex h-14 max-w-7xl items-center justify-between px-3 sm:px-6">
         {/* Brand */}
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-pink-500 shadow-md shadow-purple-500/25">
+          <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg sm:rounded-xl bg-indigo-600 shadow-sm shadow-indigo-600/20">
             <Video className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-white" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold tracking-tight">
-                snap<span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">REC</span>
+              <span className="text-lg font-bold tracking-tight text-foreground">
+                snap<span className="text-indigo-600 font-extrabold">REC</span>
               </span>
-              <Badge variant="outline" className="hidden sm:inline-flex text-[9px] font-semibold tracking-wide uppercase px-1 py-0">
+              <Badge variant="outline" className="hidden sm:inline-flex text-[9px] font-semibold tracking-wide uppercase px-1.5 py-0 border-slate-200 dark:border-slate-800">
                 Studio 2.0
               </Badge>
             </div>
@@ -114,7 +114,7 @@ export function StudioNavbar({
             <Film className="h-4 w-4" />
             <span className="hidden sm:inline">Takes</span>
             {libraryCount > 0 && (
-              <Badge variant="secondary" className="ml-1 h-5 min-w-5 rounded-full px-1 text-[11px] bg-purple-500/20 text-purple-600 dark:text-purple-300 font-bold">
+              <Badge variant="secondary" className="ml-1 h-5 min-w-5 rounded-full px-1.5 text-[11px] bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 font-semibold">
                 {libraryCount}
               </Badge>
             )}

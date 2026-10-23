@@ -48,17 +48,17 @@ export function StudioModeSelector({ mode, onChange, disabled }: StudioModeSelec
             onClick={() => onChange(item.id)}
             className={cn(
               'group relative flex items-center justify-center gap-2 p-2 sm:p-2.5 rounded-xl border text-center transition-all duration-200 outline-none',
-              'hover:border-purple-500/50 hover:bg-muted/50 disabled:opacity-50 disabled:pointer-events-none',
+              'disabled:opacity-50 disabled:pointer-events-none',
               isSelected
-                ? 'border-purple-500 bg-purple-500/10 shadow-sm shadow-purple-500/20 text-foreground font-semibold'
-                : 'border-border/60 bg-card/80 text-muted-foreground'
+                ? 'border-indigo-600 bg-indigo-50/70 text-indigo-950 font-semibold shadow-sm dark:bg-indigo-950/40 dark:text-indigo-200 dark:border-indigo-500'
+                : 'border-border/80 bg-card text-muted-foreground hover:border-slate-300 hover:bg-muted/50 dark:hover:border-slate-700'
             )}
           >
             <div
               className={cn(
                 'flex h-6 w-6 items-center justify-center rounded-lg transition-colors shrink-0',
                 isSelected
-                  ? 'bg-purple-600 text-white shadow-sm shadow-purple-500/30'
+                  ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/20'
                   : 'bg-muted text-muted-foreground group-hover:text-foreground'
               )}
             >

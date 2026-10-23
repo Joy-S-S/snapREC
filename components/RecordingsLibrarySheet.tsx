@@ -56,9 +56,9 @@ export function RecordingsLibrarySheet({
         <SheetHeader className="p-5 border-b">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Film className="h-5 w-5 text-purple-500" />
+              <Film className="h-5 w-5 text-indigo-600" />
               <SheetTitle className="text-base font-bold">Session Takes</SheetTitle>
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant="secondary" className="text-xs bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border-indigo-200">
                 {items.length}
               </Badge>
             </div>
@@ -92,7 +92,7 @@ export function RecordingsLibrarySheet({
             items.map((item) => (
               <div
                 key={item.id}
-                className="group relative rounded-xl border bg-card p-3.5 shadow-sm transition-all hover:border-purple-500/50 hover:shadow-md flex flex-col gap-2.5"
+                className="group relative rounded-xl border bg-card p-3.5 shadow-sm transition-all hover:border-indigo-500/50 hover:shadow-md flex flex-col gap-2.5"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
@@ -101,11 +101,11 @@ export function RecordingsLibrarySheet({
                     </h4>
                     <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-1">
                       <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3 text-purple-400" />
+                        <Clock className="h-3 w-3 text-indigo-500" />
                         {formatTime(item.duration)}
                       </span>
                       <span className="flex items-center gap-1">
-                        <HardDrive className="h-3 w-3 text-sky-400" />
+                        <HardDrive className="h-3 w-3 text-slate-500" />
                         {formatFileSize(item.sizeBytes)}
                       </span>
                       <Badge variant="outline" className="text-[9px] uppercase px-1 py-0 font-bold">
@@ -142,7 +142,7 @@ export function RecordingsLibrarySheet({
                   <Button
                     size="sm"
                     onClick={() => downloadBlob(item.blob, `${item.name}.${item.format}`)}
-                    className="h-8 px-3 text-xs gap-1.5 bg-purple-600 hover:bg-purple-500 text-white"
+                    className="h-8 px-3 text-xs gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white"
                   >
                     <Download className="h-3.5 w-3.5" />
                     <span>Download</span>

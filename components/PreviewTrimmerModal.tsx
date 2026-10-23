@@ -260,11 +260,11 @@ export function PreviewTrimmerModal({
   return (
     <>
       <Dialog open={open} onOpenChange={(o) => !o && !isTrimming && onClose()}>
-        <DialogContent className="max-w-3xl w-full p-3 sm:p-5 max-h-[92vh] overflow-y-auto flex flex-col gap-3">
+        <DialogContent className="max-w-3xl w-full p-4 sm:p-5 max-h-[92vh] overflow-y-auto flex flex-col gap-3.5 border-slate-200 dark:border-slate-800 shadow-2xl">
           {/* Header */}
           <DialogHeader className="space-y-1">
             <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold">
-              <FileVideo className="h-5 w-5 text-purple-500" />
+              <FileVideo className="h-5 w-5 text-indigo-600" />
               <span>Review & Export Recording</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
@@ -273,31 +273,31 @@ export function PreviewTrimmerModal({
           </DialogHeader>
 
           {/* 1. Video Player Container - strictly above the trimmer */}
-          <div className="relative w-full rounded-xl overflow-hidden bg-black border border-border shadow-inner max-h-[36vh] flex items-center justify-center">
+          <div className="relative w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-inner max-h-[40vh] flex items-center justify-center">
             <video
               ref={videoRef}
               src={item.url}
               controls
               playsInline
               onLoadedMetadata={handleLoadedMetadata}
-              className="w-full max-h-[36vh] object-contain"
+              className="w-full max-h-[40vh] aspect-video object-contain"
             />
           </div>
 
           {/* 2. Unified Timeline Trimmer - strictly below the video */}
-          <div className="rounded-xl border bg-card/60 p-3 sm:p-4 space-y-2.5 shadow-sm">
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-card p-3 sm:p-4 space-y-3 shadow-sm">
             {/* Trimmer Title & Status Bar */}
             <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
               <div className="flex items-center gap-2 font-semibold">
-                <Scissors className="h-4 w-4 text-purple-500" />
+                <Scissors className="h-4 w-4 text-indigo-600" />
                 <span className="text-sm font-bold text-foreground">Video Trimmer</span>
                 {isTrimmed && (
-                  <Badge variant="secondary" className="bg-purple-500/20 text-purple-600 dark:text-purple-300 text-[10px] py-0 px-2 font-bold">
+                  <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-[10px] py-0 px-2 font-semibold">
                     Trim Active
                   </Badge>
                 )}
                 {isTrimming && (
-                  <Badge variant="secondary" className="bg-amber-500/20 text-amber-500 text-[10px] py-0 px-2 font-bold animate-pulse">
+                  <Badge variant="secondary" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] py-0 px-2 font-semibold animate-pulse">
                     Processing {trimProgress}%
                   </Badge>
                 )}
@@ -306,7 +306,7 @@ export function PreviewTrimmerModal({
               {/* Trim duration readout */}
               <div className="flex items-center gap-2 text-xs">
                 <span className="text-muted-foreground">Export Clip:</span>
-                <span className="font-mono font-bold text-purple-500">
+                <span className="font-mono font-bold text-indigo-600">
                   {formatTime(exportDurationSec)}
                 </span>
                 <span className="text-muted-foreground/60 text-[11px]">
@@ -328,34 +328,34 @@ export function PreviewTrimmerModal({
                 className="relative flex w-full touch-none select-none items-center py-2"
               >
                 {/* Background track (dimmed out) */}
-                <SliderPrimitive.Track className="relative h-3 w-full grow overflow-hidden rounded-full bg-muted/80 border border-border">
+                <SliderPrimitive.Track className="relative h-2.5 w-full grow overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                   {/* Active highlighted region between thumbs */}
-                  <SliderPrimitive.Range className="absolute h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-pink-500 rounded-full shadow-inner" />
+                  <SliderPrimitive.Range className="absolute h-full bg-indigo-600 rounded-full shadow-inner" />
                 </SliderPrimitive.Track>
 
                 {/* Left Thumb: START CUT */}
                 <SliderPrimitive.Thumb
-                  className="block h-7 w-7 rounded-full border-2 border-purple-500 bg-background shadow-lg shadow-purple-500/40 transition-transform hover:scale-110 focus:outline-none cursor-grab active:cursor-grabbing flex items-center justify-center ring-2 ring-purple-500/20"
+                  className="block h-6 w-6 rounded-full border-2 border-indigo-600 bg-white shadow-md transition-transform hover:scale-110 focus:outline-none cursor-grab active:cursor-grabbing flex items-center justify-center ring-2 ring-indigo-100 dark:ring-indigo-900"
                   aria-label="Start Trim"
                 >
-                  <div className="h-2.5 w-0.5 bg-purple-500 rounded-full" />
+                  <div className="h-2 w-0.5 bg-indigo-600 rounded-full" />
                 </SliderPrimitive.Thumb>
 
                 {/* Right Thumb: END CUT */}
                 <SliderPrimitive.Thumb
-                  className="block h-7 w-7 rounded-full border-2 border-pink-500 bg-background shadow-lg shadow-pink-500/40 transition-transform hover:scale-110 focus:outline-none cursor-grab active:cursor-grabbing flex items-center justify-center ring-2 ring-pink-500/20"
+                  className="block h-6 w-6 rounded-full border-2 border-indigo-600 bg-white shadow-md transition-transform hover:scale-110 focus:outline-none cursor-grab active:cursor-grabbing flex items-center justify-center ring-2 ring-indigo-100 dark:ring-indigo-900"
                   aria-label="End Trim"
                 >
-                  <div className="h-2.5 w-0.5 bg-pink-500 rounded-full" />
+                  <div className="h-2 w-0.5 bg-indigo-600 rounded-full" />
                 </SliderPrimitive.Thumb>
               </SliderPrimitive.Root>
             </div>
 
             {/* Handle Labels & Quick Actions */}
-            <div className="flex items-center justify-between text-xs pt-1 border-t border-border/50">
+            <div className="flex items-center justify-between text-xs pt-1.5 border-t border-border/50">
               {/* Start handle time */}
               <div className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-purple-500" />
+                <span className="h-2 w-2 rounded-full bg-indigo-600" />
                 <span className="text-muted-foreground text-[11px]">Start:</span>
                 <span className="font-mono font-semibold text-foreground text-xs">
                   {formatTime(startTimeSec)}
@@ -369,7 +369,7 @@ export function PreviewTrimmerModal({
                   size="sm"
                   disabled={isTrimming}
                   onClick={togglePlayTrimmed}
-                  className="h-7 px-2.5 text-xs gap-1.5 font-medium"
+                  className="h-7 px-2.5 text-xs gap-1.5 font-medium border-slate-200 dark:border-slate-700"
                 >
                   {isPlayingTrim ? (
                     <>
@@ -378,7 +378,7 @@ export function PreviewTrimmerModal({
                     </>
                   ) : (
                     <>
-                      <Play className="h-3 w-3 fill-current text-purple-500" />
+                      <Play className="h-3 w-3 fill-indigo-600 text-indigo-600" />
                       <span>Play Cut</span>
                     </>
                   )}
@@ -390,7 +390,7 @@ export function PreviewTrimmerModal({
                     size="sm"
                     disabled={isTrimming}
                     onClick={handleApplyTrim}
-                    className="h-7 px-2.5 text-xs gap-1 bg-purple-500/15 hover:bg-purple-500/25 text-purple-600 dark:text-purple-300 font-semibold border border-purple-500/30"
+                    className="h-7 px-2.5 text-xs gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-800"
                   >
                     {isTrimming ? (
                       <>
@@ -422,7 +422,7 @@ export function PreviewTrimmerModal({
 
               {/* End handle time */}
               <div className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-pink-500" />
+                <span className="h-2 w-2 rounded-full bg-indigo-600" />
                 <span className="text-muted-foreground text-[11px]">End:</span>
                 <span className="font-mono font-semibold text-foreground text-xs">
                   {formatTime(endTimeSec)}
@@ -432,7 +432,7 @@ export function PreviewTrimmerModal({
           </div>
 
           {/* 3. Metadata & File Details */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold">Recording Title</Label>
               <Input
@@ -444,16 +444,16 @@ export function PreviewTrimmerModal({
               />
             </div>
 
-            <div className="flex items-center justify-start sm:justify-end gap-3 text-xs text-muted-foreground pt-1">
-              <div className="flex items-center gap-1 rounded-md bg-muted px-2 py-1">
-                <Clock className="h-3.5 w-3.5 text-purple-400" />
-                <span>{formatTime(duration)}</span>
+            <div className="flex items-center justify-start sm:justify-end gap-2.5 text-xs text-muted-foreground pt-1">
+              <div className="flex items-center gap-1 rounded-md bg-muted px-2.5 py-1">
+                <Clock className="h-3.5 w-3.5 text-slate-500" />
+                <span className="font-mono">{formatTime(duration)}</span>
               </div>
-              <div className="flex items-center gap-1 rounded-md bg-muted px-2 py-1">
-                <HardDrive className="h-3.5 w-3.5 text-sky-400" />
+              <div className="flex items-center gap-1 rounded-md bg-muted px-2.5 py-1">
+                <HardDrive className="h-3.5 w-3.5 text-slate-500" />
                 <span>{formatFileSize(item.sizeBytes)}</span>
               </div>
-              <div className="rounded-md bg-purple-500/10 px-2 py-1 text-purple-400 font-bold uppercase text-[10px]">
+              <div className="rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-1 font-bold uppercase text-[10px] border border-slate-200 dark:border-slate-700">
                 {item.format}
               </div>
             </div>
@@ -462,11 +462,11 @@ export function PreviewTrimmerModal({
           {/* 4. Action Footer */}
           <DialogFooter className="flex-col sm:flex-row gap-2 sm:justify-between pt-3 border-t">
             <Button
-              variant="destructive"
+              variant="outline"
               size="sm"
               disabled={isTrimming}
               onClick={() => setConfirmDiscardOpen(true)}
-              className="gap-1.5 h-9"
+              className="gap-1.5 h-9 text-xs border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:border-rose-900/50 dark:hover:bg-rose-950/30"
             >
               <Trash2 className="h-4 w-4" />
               <span>Discard Take</span>
@@ -478,18 +478,18 @@ export function PreviewTrimmerModal({
                 size="sm"
                 disabled={isTrimming}
                 onClick={handleSaveAndClose}
-                className="gap-1.5 h-9"
+                className="gap-1.5 h-9 text-xs border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
               >
-                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 <span>Save to Takes</span>
               </Button>
 
               <Button
-                variant="secondary"
+                variant="outline"
                 size="sm"
                 disabled={isTrimming}
                 onClick={() => handleDownload('webm')}
-                className="gap-1.5 h-9 text-xs font-semibold"
+                className="gap-1.5 h-9 text-xs font-medium border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-200"
               >
                 {isTrimming ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -503,7 +503,7 @@ export function PreviewTrimmerModal({
                 size="sm"
                 disabled={isTrimming}
                 onClick={() => handleDownload('mp4')}
-                className="gap-1.5 h-9 text-xs font-bold text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 shadow-md shadow-purple-500/25"
+                className="gap-1.5 h-9 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm"
               >
                 {isTrimming ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

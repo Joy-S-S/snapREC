@@ -122,11 +122,11 @@ export function StudioCanvasStage({
       {!previewStream && (
         <div className="absolute inset-0 flex flex-col items-center justify-center p-4 sm:p-6 text-center select-none">
           {/* Ambient glow */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-950/20 via-transparent to-transparent pointer-events-none" />
 
           <div className="relative z-10 flex flex-col items-center max-w-sm">
-            <div className="flex h-11 w-11 sm:h-13 sm:w-13 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 mb-2 sm:mb-3 shadow-md shadow-purple-500/10">
-              <Monitor className="h-5 w-5 sm:h-6 sm:w-6 text-purple-400" />
+            <div className="flex h-11 w-11 sm:h-13 sm:w-13 items-center justify-center rounded-xl bg-indigo-500/10 border border-indigo-500/20 mb-2 sm:mb-3 shadow-sm">
+              <Monitor className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-400" />
             </div>
 
             <h3 className="text-base sm:text-lg font-bold tracking-tight text-white mb-1">
@@ -142,7 +142,7 @@ export function StudioCanvasStage({
             <Button
               size="default"
               onClick={onStart}
-              className="gap-2 rounded-full px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold shadow-md shadow-purple-500/25 bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white border-0 transition-transform hover:scale-105 active:scale-95"
+              className="gap-2 rounded-full px-6 py-2.5 text-xs sm:text-sm font-semibold shadow-sm bg-indigo-600 hover:bg-indigo-700 text-white border-0 transition-all hover:scale-105 active:scale-95"
             >
               <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
               Start Recording
@@ -163,7 +163,7 @@ export function StudioCanvasStage({
                 onClick={() => onPositionChange(corner)}
                 className={cn(
                   'pointer-events-auto absolute px-2.5 py-1 rounded-lg border text-[11px] font-medium transition-all duration-200 capitalize backdrop-blur-md shadow-md select-none',
-                  'border-white/20 bg-black/60 text-neutral-300 hover:text-white hover:border-purple-500 hover:bg-purple-950/50 hover:shadow-purple-500/20 active:scale-95',
+                  'border-white/20 bg-black/60 text-neutral-200 hover:text-white hover:border-indigo-400 hover:bg-slate-900/80 active:scale-95',
                   corner === 'top-left' && 'top-3 left-3',
                   corner === 'top-right' && 'top-3 right-3',
                   corner === 'bottom-left' && 'bottom-3 left-3',
@@ -182,7 +182,7 @@ export function StudioCanvasStage({
       {settings.mode === 'screen_cam' && (
         <div
           className={cn(
-            'absolute transition-all duration-300 z-20 overflow-hidden shadow-xl border-2 border-white/80 ring-2 ring-purple-500/50 bg-black',
+            'absolute transition-all duration-300 z-20 overflow-hidden shadow-xl border-2 border-white ring-2 ring-indigo-500 bg-black',
             getPositionClasses(settings.camPosition),
             getShapeClasses(settings.camShape),
             getSizeClasses(settings.camSize)
@@ -200,9 +200,9 @@ export function StudioCanvasStage({
               )}
             />
           ) : (
-            <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-tr from-purple-900/60 to-black p-2 text-center text-white/80">
-              <Video className="h-5 w-5 text-purple-400 mb-0.5" />
-              <span className="text-[9px] font-semibold tracking-wide uppercase">Webcam</span>
+            <div className="h-full w-full flex flex-col items-center justify-center bg-slate-900 p-2 text-center text-white/80">
+              <Video className="h-5 w-5 text-indigo-400 mb-0.5" />
+              <span className="text-[9px] font-semibold tracking-wide uppercase text-slate-300">Webcam</span>
             </div>
           )}
         </div>
@@ -212,7 +212,7 @@ export function StudioCanvasStage({
       {status === 'countdown' && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
           <div className="flex flex-col items-center">
-            <span className="text-7xl sm:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-300 animate-bounce drop-shadow-[0_0_30px_rgba(168,85,247,0.5)]">
+            <span className="text-7xl sm:text-8xl font-black text-white animate-bounce drop-shadow-lg">
               {countdownNumber}
             </span>
             <span className="text-xs font-semibold tracking-widest text-neutral-400 uppercase mt-2">

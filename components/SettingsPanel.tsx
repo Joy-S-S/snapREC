@@ -45,7 +45,7 @@ export function SettingsPanel({
       <CardHeader className="pb-2.5 pt-3.5 px-4 sm:px-4.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <SlidersHorizontal className="h-4 w-4 text-purple-500" />
+            <SlidersHorizontal className="h-4 w-4 text-indigo-600" />
             <CardTitle className="text-sm sm:text-base font-semibold">Studio Settings</CardTitle>
           </div>
           <span className="text-[11px] text-muted-foreground">Customize stream</span>
@@ -120,7 +120,7 @@ export function SettingsPanel({
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium flex items-center justify-between">
                   <span>Container Format</span>
-                  <span className="text-[10px] text-purple-500 font-semibold">Real MP4</span>
+                  <span className="text-[10px] text-indigo-600 font-semibold">Real MP4</span>
                 </Label>
                 <Select
                   value={settings.format}
@@ -159,7 +159,7 @@ export function SettingsPanel({
             </div>
 
             <div className="rounded-lg border bg-muted/40 p-3 flex items-start gap-2.5 text-xs text-muted-foreground">
-              <Info className="h-4 w-4 text-purple-500 shrink-0 mt-0.5" />
+              <Info className="h-4 w-4 text-indigo-600 shrink-0 mt-0.5" />
               <p>
                 MP4 output uses direct hardware-accelerated H.264 client-side encoding. Recordings play natively on Windows, macOS, QuickTime, iOS, Android, and PowerPoint without server conversion.
               </p>
