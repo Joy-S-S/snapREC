@@ -381,7 +381,16 @@ export default function StudioPage() {
         recorderOptions.videoBitsPerSecond = settings.bitrateMbps * 1000 * 1000;
       }
 
-      const mediaRecorder = new MediaRecorder(combinedStream, recorderOptions);
+      // Enforce 1000ms keyframe interval (GOP) for instant, ghost-free seeking in VLC and media players
+      let mediaRecorder: MediaRecorder;
+      try {
+        mediaRecorder = new MediaRecorder(combinedStream, {
+          ...recorderOptions,
+          videoKeyFrameIntervalDuration: 1000,
+        } as MediaRecorderOptions);
+      } catch {
+        mediaRecorder = new MediaRecorder(combinedStream, recorderOptions);
+      }
       mediaRecorderRef.current = mediaRecorder;
 
       mediaRecorder.ondataavailable = (e) => {

@@ -163,7 +163,21 @@ export async function trimVideoClientSide(
 
         const combined = new MediaStream(tracks);
         const { mimeType, isNativeMp4 } = getBestMimeType(format);
-        const recorder = new MediaRecorder(combined, mimeType ? { mimeType } : {});
+
+        const recorderOptions: MediaRecorderOptions = {};
+        if (mimeType) {
+          recorderOptions.mimeType = mimeType;
+        }
+
+        let recorder: MediaRecorder;
+        try {
+          recorder = new MediaRecorder(combined, {
+            ...recorderOptions,
+            videoKeyFrameIntervalDuration: 1000,
+          } as MediaRecorderOptions);
+        } catch {
+          recorder = new MediaRecorder(combined, recorderOptions);
+        }
         const chunks: Blob[] = [];
 
         recorder.ondataavailable = (e) => {
