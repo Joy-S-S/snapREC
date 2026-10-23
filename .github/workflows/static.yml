@@ -34,7 +34,9 @@ jobs:
         run: npm ci
 
       - name: Build Next.js Static Export
-        run: npm run build
+        run: |
+          npm run build
+          touch ./out/.nojekyll
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
